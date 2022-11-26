@@ -4,6 +4,7 @@ FPS = 60
 
 LIGHT_BLUE = (16, 109, 191)
 DARK_BLUE = (0,0,139)
+BG_COLOR = (242, 243, 244)
 
 FPS = 60
 

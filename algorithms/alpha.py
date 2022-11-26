@@ -5,3 +5,4 @@ def move(board, player, remain_time_x, remain_time_y):
 
 if __name__ == '__main__':
     # Test Space
+    pass
