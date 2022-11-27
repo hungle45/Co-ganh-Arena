@@ -215,7 +215,7 @@ class HumanGameUIMixin():
 
     def _draw_possible_moves(self):
         if self.selected_piece is not None:
-            p_moves = self.problem.get_possible_moves(self.state)[self.selected_piece]
+            p_moves = self.problem.get_possible_moves(self.state).get(self.selected_piece,[])
             for p_move in p_moves:
                 self._draw_piece((180, 180, 180),p_move[0],p_move[1],self.PIECE_RADIUS*0.6)
 
