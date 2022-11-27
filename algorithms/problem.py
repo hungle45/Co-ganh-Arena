@@ -62,7 +62,7 @@ class Problem:
         for coor_y in range(state.height):
             for coor_x in range(state.width):
                 position = []
-                if(state.board[coor_x, coor_y] == state.player):
+                if(state.board[coor_y, coor_x] == state.player):
 
                     left = bool(state.board[coor_y, max(0, coor_x - 1)])
                     right = bool(state.board[coor_y, min(coor_x + 1, state.width - 1)])
@@ -137,8 +137,7 @@ class Problem:
                    None if inplace is True.
             
         '''
-        print(action[0], self.get_possible_moves(state))
-        if action[1] in self.get_possible_moves(state)[action[0][0], action[0][1]]:
+        if action[1] in self.get_possible_moves(state).get(action[0], []):
             return True,self.move(state, action, inplace)
         return False, None
 
