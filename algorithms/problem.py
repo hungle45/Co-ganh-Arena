@@ -77,17 +77,17 @@ class Problem:
                     if not down:
                         position.append((coor_y + 1, coor_x))
                     if ((coor_x + coor_y) % 2 == 0):
-                        top_left = bool(state.board[max(0, coor_y - 1), max(0, coor_x - 1)])
-                        top_right = bool(state.board[max(0, coor_y - 1), min(coor_x + 1, state.width - 1)])
-                        bottom_left = bool(state.board[min(coor_y + 1, state.height - 1), max(0, coor_x - 1)])
-                        bottom_right = bool(state.board[min(coor_y + 1, state.height - 1), min(coor_x + 1, state.width - 1)])
-                        if not top_left:
+                        top_left = ((coor_y > 0) & (coor_x > 0))
+                        top_right = ((coor_y > 0) & (coor_x + 1 < state.width))
+                        bottom_left = ((coor_y + 1 < state.height) & (coor_x > 0))
+                        bottom_right = ((coor_y + 1 < state.height), (coor_x + 1 < state.width))
+                        if top_left:
                             position.append((coor_y - 1, coor_x - 1))
-                        if not top_right:
+                        if top_right:
                             position.append((coor_y - 1, coor_x + 1))
-                        if not bottom_left:
+                        if bottom_left:
                             position.append((coor_y + 1, coor_x - 1))
-                        if not bottom_right:
+                        if bottom_right:
                             position.append((coor_y + 1, coor_x + 1))
 
                 if (position):
@@ -134,10 +134,19 @@ class Problem:
                 remove.append((coor_y + 1, coor_x))
 
         if ((coor_x + coor_y) % 2 == 0):
-            top_left = state.board[max(0, coor_y - 1), max(0, coor_x - 1)]
-            top_right = state.board[max(0, coor_y - 1), min(coor_x + 1, state.width - 1)]
-            bottom_left = state.board[min(coor_y + 1, state.height - 1), max(0, coor_x - 1)]
-            bottom_right = state.board[min(coor_y + 1, state.height - 1), min(coor_x + 1, state.width - 1)]
+            top_left, top_right, bottom_left, bottom_right = 0, 0, 0, 0
+            if ((coor_y > 0) & (coor_x > 0)):
+                top_left = state.board[coor_y - 1, coor_x - 1]
+
+            if ((coor_y > 0) & (coor_x + 1 < state.width)):
+                top_right = state.board[coor_y - 1, coor_x + 1]
+
+            if ((coor_y + 1 < state.height) & (coor_x > 0)):
+                bottom_left = state.board[coor_y + 1, coor_x - 1]
+
+            if ((coor_y + 1 < state.height) & (coor_x + 1 < state.width)):
+                bottom_right = state.board[coor_y + 1, coor_x + 1]
+
             is_top_left, is_top_right, is_bottom_left, is_bottom_right = False, False, False, False
             
             if (top_left == -player):
