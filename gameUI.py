@@ -50,6 +50,8 @@ class BaseGameUI:
                 self.remain_move_p1 -= 1
             else:
                 self.remain_move_p2 -= 1
+        else:
+            self.move_log.pop()
 
         return can_do
 
@@ -200,6 +202,7 @@ class HumanGameUIMixin():
                 self.remain_move_p1 += 1
             else:
                 self.remain_move_p2 += 1
+            self.selected_piece = None
             
 
     def _draw_seleted_piece(self):
