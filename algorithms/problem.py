@@ -9,6 +9,13 @@ class State:
         return np.array_equal(self.board,other.board) \
             and self.player == other.player
 
+    def check_winning_state(self):
+        # return: one of below:
+        #           (1)  1: player 1 win
+        #           (2) -1: player 2 win
+        #           (3)  0: continue
+        pass
+
 
 class Problem:
     def __init__(self):

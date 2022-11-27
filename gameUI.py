@@ -27,7 +27,7 @@ class BaseGameUI:
         self.START_Y = self.CENTER_Y - self.SQUARE_SIZE*2
         self.PIECE_RADIUS = 20
 
-        self.remain_move = max_move
+        self.remain_move_p1 = self.remain_move_p2 = max_move
         self.max_total_time = max_total_time
 
         self.move_log = []
@@ -42,6 +42,13 @@ class BaseGameUI:
         return x,y
 
     def _move(self,action):
+        self.move_log.append(self.state) # save move for undo feature
+
+        if self.state.board[action[0]] == 1:
+            self.remain_move_p1 -= 1
+        else:
+            self.remain_move_p2 -= 1
+
         # can_do, _ = self.problem.move_if_possible(self.state,action,inplace=True)
         # return can_do
 
@@ -57,6 +64,8 @@ class BaseGameUI:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.ESC = True
+                elif not self.over and event.key == pygame.K_u:
+                    print('Undo')
 
 
     def _draw_grid(self):
@@ -85,8 +94,10 @@ class BaseGameUI:
         pygame.draw.circle(self.surface,WHITE,self._get_coord_by_index(r,c),4)
         pygame.draw.circle(self.surface,BLACK,self._get_coord_by_index(r,c),4,2)
 
-    def _draw_piece(self,color,x,y):
-        pygame.draw.circle(self.surface,color,self._get_coord_by_index(x,y),self.PIECE_RADIUS)
+    def _draw_piece(self,color,x,y,radius=None):
+        if radius is None:
+            radius = self.PIECE_RADIUS
+        pygame.draw.circle(self.surface,color,self._get_coord_by_index(x,y),radius)
 
     def _draw_board(self):
         # board background
@@ -96,7 +107,19 @@ class BaseGameUI:
         # raw board
         self._draw_grid()
         self._draw_diagonal()
-        
+
+    def _draw_player_info(self,title,text_color,pos):
+        # render background
+        pygame.draw.rect(self.surface,WHITE,
+            (pos[0]-80,pos[1]-80,160,150))
+        pygame.draw.rect(self.surface,text_color,
+            (pos[0]-80,pos[1]-80,160,150),1,8)
+
+        # render title
+        text = pygame.font.Font(None, 30).render(title, True, text_color)
+        text_rect = text.get_rect(center=(pos[0],pos[1]-50))
+        self.surface.blit(text, text_rect)
+
     def _draw(self):
         self.surface.fill(BG_COLOR)
         self._draw_board()
@@ -111,14 +134,25 @@ class BaseGameUI:
                 else:
                     self._draw_intersection_point(x,y)
                     
-        if self.selected_piece is not None:
-            if self.state.board[self.selected_piece] == 1:
-                self._draw_piece(FOCUS_P1_COLOR,self.selected_piece[0],self.selected_piece[1])
-            elif self.state.board[self.selected_piece] == -1:                    
-                self._draw_piece(FOCUS_P2_COLOR,self.selected_piece[0],self.selected_piece[1])
+        # self._draw_seleted_piece()
+
+        # Player infor
+        text_color_p1,text_color_p2 = (BLACK,GRAY) \
+            if self.state.player == 1 else (GRAY,BLACK)
+        self._draw_player_1_info(text_color_p1,
+            (self.W_WIDTH_SIZE/2-345,self.W_HEIGHT_SIZE/2))
+        self._draw_player_2_info(text_color_p2,
+            (self.W_WIDTH_SIZE/2+345,self.W_HEIGHT_SIZE/2))
+
+        # Instruction
+        text = pygame.font.Font(None, 24).render('Press R to undo', True, (108, 117, 125))
+        text_rect = text.get_rect(center=(self.W_WIDTH_SIZE/2, self.W_HEIGHT_SIZE - 35))
+        self.surface.blit(text, text_rect)
+
 
     def _process_end(self):
         pass
+
 
     def process(self, events):
         self._process_input(events)
@@ -161,7 +195,17 @@ class HumanGameUIMixin():
                     else:
                         if self._move((self.selected_piece,(r,c))):
                             self.selected_piece = None
-                            self.move_log.append(self.state) # save move for undo feature
+
+    def _draw_seleted_piece(self):
+        if self.selected_piece is not None:
+            if self.state.board[self.selected_piece] == 1:
+                self._draw_piece((152, 193, 254),self.selected_piece[0],
+                    self.selected_piece[1],self.PIECE_RADIUS+4)
+                self._draw_piece(FOCUS_P1_COLOR,self.selected_piece[0],self.selected_piece[1])
+            elif self.state.board[self.selected_piece] == -1:  
+                self._draw_piece((240, 169, 176),self.selected_piece[0],
+                    self.selected_piece[1],self.PIECE_RADIUS+4)                  
+                self._draw_piece(FOCUS_P2_COLOR,self.selected_piece[0],self.selected_piece[1])
 
 
 
@@ -176,12 +220,29 @@ class HVHGameUI(BaseGameUI,HumanGameUIMixin):
         super(HVHGameUI,self)._process_input(events)
 
         for event in events:
-            self._handle_select_piece(event)
+            if not self.over:
+                self._handle_select_piece(event)
 
+    def _draw_player_1_info(self, text_color, pos):
+        super(HVHGameUI, self)._draw_player_info('Player 1',text_color, pos)
 
-    def _process_end(self):
-        super(HVHGameUI,self)._process_end()
-        
+        text = pygame.font.Font(None, 24).render(
+            f'Remain move: {self.remain_move_p1}', True, text_color)
+        text_rect = text.get_rect(center=(pos[0],pos[1]-20))
+        self.surface.blit(text, text_rect)
+
+    def _draw_player_2_info(self, text_color, pos):        
+        super(HVHGameUI, self)._draw_player_info('Player 2',text_color, pos)
+
+        text = pygame.font.Font(None, 24).render(
+            f'Remain move: {self.remain_move_p2}', True, text_color)
+        text_rect = text.get_rect(center=(pos[0],pos[1]-20))
+        self.surface.blit(text, text_rect)
+
+    def _draw(self):
+        super(HVHGameUI,self)._draw()
+        self._draw_seleted_piece()
+    
 
 
 
@@ -191,12 +252,6 @@ class HVCGameUI(BaseGameUI):
                     max_move=MAX_MOVE, max_total_time=MAX_TOTAL_TIME):
         super(HVCGameUI,self).__init__(surface, w_height_size, w_width_size, max_move, max_total_time)
         self.algorithm = algorithm
-
-    def _process_input(self, events):
-        super(HVCGameUI,self)._process_input(events)
-
-    def _process_end(self):            
-        super(HVCGameUI,self)._process_end()
 
 
 
@@ -209,12 +264,6 @@ class CVCGameUI(BaseGameUI):
         
         self.algorithm1 = algorithm1
         self.algorithm2 = algorithm2
-    
-    def _process_input(self, events):
-        pass
-
-    def _process_end(self):
-        pass
         
 
 
