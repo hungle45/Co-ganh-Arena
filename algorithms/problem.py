@@ -94,7 +94,82 @@ class Problem:
                     dictionary[(coor_y, coor_x)] = sorted(position, key= compare_pos)
         return dictionary
 
-    def move(self, state:State, action, inplace=False):
+    def capture(self, state: State, pos: tuple):
+        player = state.board[pos]
+        coor_y = pos[0]
+        coor_x = pos[1]
+        left = state.board[coor_y, max(0, coor_x - 1)]
+        right = state.board[coor_y, min(coor_x + 1, state.width - 1)]
+        up = state.board[max(0, coor_y - 1), coor_x]
+        down = state.board[min(coor_y + 1, state.height - 1), coor_x]
+        remove = []
+        is_left, is_right, is_up, is_down = False, False, False, False
+
+        if (left == -player):
+            if state.board[coor_y, max(0, coor_x - 2)] == player:
+                remove.append((coor_y, coor_x - 1)) #Remove left opponent
+                is_left = True
+        if (right == -player):
+            if state.board[coor_y, min(coor_x + 2, state.width - 1)] == player:
+                remove.append((coor_y, coor_x + 1)) #Remove right opponent 
+                is_right = True
+        if ((left == right) & (left == -player)):
+            if not is_left:
+                remove.append((coor_y, coor_x - 1))
+            if not is_right:
+                remove.append((coor_y, coor_x + 1))
+        
+        if (up == -player):
+            if state.board[max(0, coor_y - 2), coor_x] == player:
+                remove.append((coor_y - 1, coor_x)) #Remove up opponent
+                is_up = True
+        if (down == -player):
+            if state.board[min(coor_y + 2, state.height - 1), coor_x] == player:
+                remove.append((coor_y + 1, coor_x)) #Remove down opponent 
+                is_down = True
+        if ((up == down) & (up == -player)):
+            if not is_up:
+                remove.append((coor_y - 1, coor_x))
+            if not is_down:
+                remove.append((coor_y + 1, coor_x))
+
+        if ((coor_x + coor_y) % 2 == 0):
+            top_left = state.board[max(0, coor_y - 1), max(0, coor_x - 1)]
+            top_right = state.board[max(0, coor_y - 1), min(coor_x + 1, state.width - 1)]
+            bottom_left = state.board[min(coor_y + 1, state.height - 1), max(0, coor_x - 1)]
+            bottom_right = state.board[min(coor_y + 1, state.height - 1), min(coor_x + 1, state.width - 1)]
+            is_top_left, is_top_right, is_bottom_left, is_bottom_right = False, False, False, False
+            
+            if (top_left == -player):
+                if state.board[max(0, coor_y - 2), max(0, coor_x - 2)] == player:
+                    remove.append((coor_y - 1, coor_x - 1)) #Remove top left opponent
+                    is_top_left = True
+            if (bottom_right == -player):
+                if state.board[min(coor_y + 1, state.height - 1), min(coor_x + 1, state.width - 1)] == player:
+                    remove.append((coor_y, coor_x + 1)) #Remove bottom right opponent 
+                    is_bottom_right = True
+            if ((top_left == bottom_right) & (top_left == -player)):
+                if not is_top_left:
+                    remove.append((coor_y - 1, coor_x - 1))
+                if not is_bottom_right:
+                    remove.append((coor_y + 1, coor_x + 1))
+            
+            if (top_right == -player):
+                if state.board[max(0, coor_y - 1), min(coor_x + 1, state.width - 1)] == player:
+                    remove.append((coor_y - 1, coor_x + 1)) #Remove top right opponent
+                    is_top_right = True
+            if (bottom_left == -player):
+                if state.board[min(coor_y + 1, state.height - 1), max(0, coor_x - 1)] == player:
+                    remove.append((coor_y + 1, coor_x - 1)) #Remove bottom left opponent 
+                    is_bottom_left = True
+            if ((top_right == bottom_left) & (top_right == -player)):
+                if not is_top_right:
+                    remove.append((coor_y - 1, coor_x + 1))
+                if not is_bottom_left:
+                    remove.append((coor_y + 1, coor_x - 1))            
+        return remove
+
+    def move(self, state: State, action, inplace=False):
         '''
         Do action.
 
@@ -112,9 +187,11 @@ class Problem:
         '''
         if not inplace:
             state = copy.deepcopy(state)
-        
         state.board[action[1]] = state.board[action[0]]
         state.board[action[0]] = 0
+        remove_list = self.capture(state, action[1])
+        for pos in remove_list:
+            state.board[pos] = 0
         state.player *= -1
 
         if not inplace:
