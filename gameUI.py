@@ -42,15 +42,16 @@ class BaseGameUI:
         return x,y
 
     def _move(self,action):
-        self.move_log.append(self.state) # save move for undo feature
+        self.move_log.append(copy.deepcopy(self.state)) # save move for undo feature
 
-        if self.state.board[action[0]] == 1:
-            self.remain_move_p1 -= 1
-        else:
-            self.remain_move_p2 -= 1
+        can_do, _ = self.problem.move_if_possible(self.state,action,inplace=True)
+        if can_do:
+            if self.state.player == -1:
+                self.remain_move_p1 -= 1
+            else:
+                self.remain_move_p2 -= 1
 
-        # can_do, _ = self.problem.move_if_possible(self.state,action,inplace=True)
-        # return can_do
+        return can_do
 
         # simulate move action
         self.state.board[action[1]] = self.state.board[action[0]]
@@ -64,8 +65,6 @@ class BaseGameUI:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.ESC = True
-                elif not self.over and event.key == pygame.K_u:
-                    print('Undo')
 
 
     def _draw_grid(self):
@@ -134,8 +133,6 @@ class BaseGameUI:
                 else:
                     self._draw_intersection_point(x,y)
                     
-        # self._draw_seleted_piece()
-
         # Player infor
         text_color_p1,text_color_p2 = (BLACK,GRAY) \
             if self.state.player == 1 else (GRAY,BLACK)
@@ -195,6 +192,15 @@ class HumanGameUIMixin():
                     else:
                         if self._move((self.selected_piece,(r,c))):
                             self.selected_piece = None
+    
+    def _handle_undo(self,event):
+        if event.key == pygame.K_u and len(self.move_log) != 0:
+            self.state = self.move_log.pop()
+            if self.state.player == 1:
+                self.remain_move_p1 += 1
+            else:
+                self.remain_move_p2 += 1
+            
 
     def _draw_seleted_piece(self):
         if self.selected_piece is not None:
@@ -207,6 +213,11 @@ class HumanGameUIMixin():
                     self.selected_piece[1],self.PIECE_RADIUS+4)                  
                 self._draw_piece(FOCUS_P2_COLOR,self.selected_piece[0],self.selected_piece[1])
 
+    def _draw_possible_moves(self):
+        if self.selected_piece is not None:
+            p_moves = self.problem.get_possible_moves(self.state)[self.selected_piece]
+            for p_move in p_moves:
+                self._draw_piece((180, 180, 180),p_move[0],p_move[1],self.PIECE_RADIUS*0.6)
 
 
 
@@ -222,6 +233,9 @@ class HVHGameUI(BaseGameUI,HumanGameUIMixin):
         for event in events:
             if not self.over:
                 self._handle_select_piece(event)
+                if event.type == pygame.KEYDOWN:
+                    self._handle_undo(event)
+
 
     def _draw_player_1_info(self, text_color, pos):
         super(HVHGameUI, self)._draw_player_info('Player 1',text_color, pos)
@@ -242,6 +256,7 @@ class HVHGameUI(BaseGameUI,HumanGameUIMixin):
     def _draw(self):
         super(HVHGameUI,self)._draw()
         self._draw_seleted_piece()
+        self._draw_possible_moves()
     
 
 
