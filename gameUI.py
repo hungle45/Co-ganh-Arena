@@ -6,6 +6,9 @@ import pygame
 from algorithms import State,Problem
 from constants import *
 
+
+
+
 # Base GameUI class
 class BaseGameUI:
     def __init__(self, surface, w_height_size, w_width_size, max_move, max_total_time):
@@ -22,12 +25,13 @@ class BaseGameUI:
         self.SQUARE_SIZE = 90
         self.START_X = self.CENTER_X - self.SQUARE_SIZE*2
         self.START_Y = self.CENTER_Y - self.SQUARE_SIZE*2
+        self.PIECE_RADIUS = 20
 
         self.remain_move = max_move
         self.max_total_time = max_total_time
 
-        self.player_to_move = 1 # 1: blue; -1: red
         self.move_log = []
+        self.selected_piece = None
 
         self.over = False
         self.ESC = False
@@ -36,6 +40,16 @@ class BaseGameUI:
         x = self.START_X + self.SQUARE_SIZE*x
         y = self.START_Y + self.SQUARE_SIZE*y
         return x,y
+
+    def _move(self,action):
+        # can_do, _ = self.problem.move_if_possible(self.state,action,inplace=True)
+        # return can_do
+
+        # simulate move action
+        self.state.board[action[1]] = self.state.board[action[0]]
+        self.state.board[action[0]] = 0
+        self.state.player *= -1
+        return True
 
 
     def _process_input(self, events):
@@ -47,56 +61,61 @@ class BaseGameUI:
 
     def _draw_grid(self):
         for i in range(5):
-            pygame.draw.line(self.surface,'black',
+            pygame.draw.line(self.surface,BLACK,
                 self._get_coord_by_index(i,0),self._get_coord_by_index(i,4),2)
 
-            pygame.draw.line(self.surface,'black',
+            pygame.draw.line(self.surface,BLACK,
                 self._get_coord_by_index(0,i),self._get_coord_by_index(4,i),2)
 
     def _draw_diagonal(self):
         # big cross
-        pygame.draw.line(self.surface,'black',
+        pygame.draw.line(self.surface,BLACK,
             self._get_coord_by_index(0,0),self._get_coord_by_index(4,4),2)
-        pygame.draw.line(self.surface,'black',
+        pygame.draw.line(self.surface,BLACK,
             self._get_coord_by_index(4,0),self._get_coord_by_index(0,4),2)
 
         # small rotated square
         encoded_coords = [2,0,2,4,2,0]
         for i in range(4):
-            pygame.draw.line(self.surface,'black',
+            pygame.draw.line(self.surface,BLACK,
                 self._get_coord_by_index(encoded_coords[i],encoded_coords[i+1]),
                 self._get_coord_by_index(encoded_coords[i+1],encoded_coords[i+2]),2)
 
-    def _draw_intersection_point(self,x,y):
-        pygame.draw.circle(self.surface,'white',self._get_coord_by_index(x,y),4)
-        pygame.draw.circle(self.surface,'black',self._get_coord_by_index(x,y),4,2)
+    def _draw_intersection_point(self,r,c):
+        pygame.draw.circle(self.surface,WHITE,self._get_coord_by_index(r,c),4)
+        pygame.draw.circle(self.surface,BLACK,self._get_coord_by_index(r,c),4,2)
 
     def _draw_piece(self,color,x,y):
-        pygame.draw.circle(self.surface,color,self._get_coord_by_index(x,y),12)
+        pygame.draw.circle(self.surface,color,self._get_coord_by_index(x,y),self.PIECE_RADIUS)
 
     def _draw_board(self):
         # board background
-        pygame.draw.rect(self.surface,'white',
+        pygame.draw.rect(self.surface,WHITE,
             (self.CENTER_X-500/2,self.CENTER_Y-500/2,500,500))
 
         # raw board
         self._draw_grid()
         self._draw_diagonal()
         
-        # draw pieces
-        for x in range(5):
-            for y in range(5):
-                if self.state.board[x][y] == 1:
-                    self._draw_piece('blue', x, y)
-                elif self.state.board[x][y] == -1:                    
-                    self._draw_piece('red', x, y)
-                else:
-                    self._draw_intersection_point(x,y)
-
     def _draw(self):
         self.surface.fill(BG_COLOR)
         self._draw_board()
 
+        # draw pieces
+        for x in range(5):
+            for y in range(5):
+                if self.state.board[x][y] == 1:
+                    self._draw_piece(P1_COLOR, x, y)
+                elif self.state.board[x][y] == -1:                    
+                    self._draw_piece(P2_COLOR, x, y)
+                else:
+                    self._draw_intersection_point(x,y)
+                    
+        if self.selected_piece is not None:
+            if self.state.board[self.selected_piece] == 1:
+                self._draw_piece(FOCUS_P1_COLOR,self.selected_piece[0],self.selected_piece[1])
+            elif self.state.board[self.selected_piece] == -1:                    
+                self._draw_piece(FOCUS_P2_COLOR,self.selected_piece[0],self.selected_piece[1])
 
     def _process_end(self):
         pass
@@ -110,48 +129,94 @@ class BaseGameUI:
         return self.ESC
 
 
-# Game UI for Hum vs Hum
-class HVHGameUI(BaseGameUI):
-        def __init__(self, surface, w_height_size=W_HEIGHT_SIZE, w_width_size=W_WIDTH_SIZE,\
-                     max_move=MAX_MOVE, max_total_time=MAX_TOTAL_TIME):
-            super(HVHGameUI,self).__init__(surface, w_height_size, w_width_size, max_move, max_total_time)
 
-        def _process_input(self, events):
-            super(HVHGameUI,self)._process_input(events)
-    
-        def _process_end(self):
-            super(HVHGameUI,self)._process_end()
+
+class HumanGameUIMixin():
+    def _get_index_by_mouse_pos(self,pos):
+        pos_x,pos_y = pos[0]-self.START_X, pos[1]-self.START_Y
+
+        nearest_row = round(pos_x/self.SQUARE_SIZE)
+        nearest_col = round(pos_y/self.SQUARE_SIZE)
+
+        r,c = None,None
+        if 0<=nearest_row<5 and abs(pos_x-self.SQUARE_SIZE*nearest_row)<=self.PIECE_RADIUS:
+            r = nearest_row
+        if 0<=nearest_col<5 and abs(pos_y-self.SQUARE_SIZE*nearest_col)<=self.PIECE_RADIUS:
+            c = nearest_col
+
+        return r, c
+
+    def _handle_select_piece(self,event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            pos = pygame.mouse.get_pos()
+            r,c = self._get_index_by_mouse_pos(pos)
+
+            if r is not None and c is not None:
+                if self.selected_piece is None:
+                    if self.state.player == self.state.board[r][c]:
+                        self.selected_piece = (r,c)
+                else:
+                    if self.selected_piece == (r,c):
+                        self.selected_piece = None
+                    else:
+                        if self._move((self.selected_piece,(r,c))):
+                            self.selected_piece = None
+                            self.move_log.append(self.state) # save move for undo feature
+
+
+
+
+# Game UI for Hum vs Hum
+class HVHGameUI(BaseGameUI,HumanGameUIMixin):
+    def __init__(self, surface, w_height_size=W_HEIGHT_SIZE, w_width_size=W_WIDTH_SIZE,\
+                    max_move=MAX_MOVE, max_total_time=MAX_TOTAL_TIME):
+        super(HVHGameUI,self).__init__(surface, w_height_size, w_width_size, max_move, max_total_time)
+
+    def _process_input(self, events):
+        super(HVHGameUI,self)._process_input(events)
+
+        for event in events:
+            self._handle_select_piece(event)
+
+
+    def _process_end(self):
+        super(HVHGameUI,self)._process_end()
         
+
+
 
 # Game UI for Hum vs Com
 class HVCGameUI(BaseGameUI):
-        def __init__(self, surface, algorithm, w_height_size=W_HEIGHT_SIZE, w_width_size=W_WIDTH_SIZE,\
-                     max_move=MAX_MOVE, max_total_time=MAX_TOTAL_TIME):
-            super(HVCGameUI,self).__init__(surface, w_height_size, w_width_size, max_move, max_total_time)
-            self.algorithm = algorithm
+    def __init__(self, surface, algorithm, w_height_size=W_HEIGHT_SIZE, w_width_size=W_WIDTH_SIZE,\
+                    max_move=MAX_MOVE, max_total_time=MAX_TOTAL_TIME):
+        super(HVCGameUI,self).__init__(surface, w_height_size, w_width_size, max_move, max_total_time)
+        self.algorithm = algorithm
 
-        def _process_input(self, events):
-            super(HVCGameUI,self)._process_input(events)
-    
-        def _process_end(self):            
-            super(HVHGameUI,self)._process_end()
-        
+    def _process_input(self, events):
+        super(HVCGameUI,self)._process_input(events)
+
+    def _process_end(self):            
+        super(HVCGameUI,self)._process_end()
+
+
+
 
 # Game UI for Com vs Com
 class CVCGameUI(BaseGameUI):
-        def __init__(self, surface, algorithm1, algorithm2, w_height_size=W_HEIGHT_SIZE,\
-                     w_width_size=W_WIDTH_SIZE, max_move=MAX_MOVE, max_total_time=MAX_TOTAL_TIME):
-            super(CVCGameUI,self).__init__(self, surface, w_height_size, w_width_size, max_move, max_total_time)
-            
-            self.algorithm1 = algorithm1
-            self.algorithm2 = algorithm2
+    def __init__(self, surface, algorithm1, algorithm2, w_height_size=W_HEIGHT_SIZE,\
+                    w_width_size=W_WIDTH_SIZE, max_move=MAX_MOVE, max_total_time=MAX_TOTAL_TIME):
+        super(CVCGameUI,self).__init__(self, surface, w_height_size, w_width_size, max_move, max_total_time)
         
-        def _process_input(self, events):
-            pass
+        self.algorithm1 = algorithm1
+        self.algorithm2 = algorithm2
     
-        def _process_end(self):
-            pass
+    def _process_input(self, events):
+        pass
+
+    def _process_end(self):
+        pass
         
+
 
 
 if __name__ == '__main__':
