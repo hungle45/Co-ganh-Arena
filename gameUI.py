@@ -150,7 +150,21 @@ class BaseGameUI:
 
 
     def _process_end(self):
-        pass
+        if self.state.check_winning_state() != 0:
+            self.over = True
+            if self.state.check_winning_state() == 1:
+                msg = 'Blue win!!!'
+                win_color = P1_COLOR
+            else:
+                msg = 'Red win!!!'
+                win_color = P2_COLOR
+
+            font = pygame.font.Font(None, 50)
+            text = font.render(msg, True, GRAY)
+            text_rect = text.get_rect(center=(self.W_WIDTH_SIZE/2, 40))
+            self.surface.blit(text, text_rect.move(-1,-1))
+            text = font.render(msg, True, win_color)
+            self.surface.blit(text, text_rect)
 
 
     def process(self, events):
