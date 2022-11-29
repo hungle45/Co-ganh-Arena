@@ -44,19 +44,20 @@ class BaseGameUI:
     def _move(self,action):
         self.move_log.append(self.state) # save move for undo feature
 
-        if self.state.board[action[0]] == 1:
-            self.remain_move_p1 -= 1
-        else:
-            self.remain_move_p2 -= 1
+        can_do, _ = self.problem.move_if_possible(self.state,action,inplace=True)
+        if can_do:
+            if self.state.player == -1:
+                self.remain_move_p1 -= 1
+            else:
+                self.remain_move_p2 -= 1
 
-        # can_do, _ = self.problem.move_if_possible(self.state,action,inplace=True)
-        # return can_do
+        return can_do
 
         # simulate move action
-        self.state.board[action[1]] = self.state.board[action[0]]
-        self.state.board[action[0]] = 0
-        self.state.player *= -1
-        return True
+        # self.state.board[action[1]] = self.state.board[action[0]]
+        # self.state.board[action[0]] = 0
+        # self.state.player *= -1
+        # return True
 
 
     def _process_input(self, events):
