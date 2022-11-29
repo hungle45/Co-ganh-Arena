@@ -3,6 +3,12 @@ import copy
 
 import numpy as np
 
+def _move_AI_bounder(board, player, remain_time_x, remain_time_y,algorithm,return_queue):
+    # move = algorithm(board, player, remain_time_x, remain_time_y)
+    move = algorithm(board, player, remain_time_x, remain_time_y)
+    return_queue.put(move)
+
+
 class State:
     def __init__(self, board: list, player: int):
         self.player = player

@@ -1,8 +1,9 @@
-import random
-from problem import State, Problem
 import sys
 import os
+import random
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from algorithms.problem import State, Problem
 
 
 def move(board, player, remain_time_x, remain_time_y):
@@ -13,14 +14,15 @@ def move(board, player, remain_time_x, remain_time_y):
         ----------
             board: map(5*5);
             player: 1 or -1, represent for player
-            remain_time_x: Time remain
-            remain_time_y: Time remain
+            remain_time_x: Time remain (ms)
+            remain_time_y: Time remain (ms)
         Output
         ----------
             random action from all possible action.
             eg. ((1,1),(1,2)).  
 
     '''
+
     state = State(board, player)
     problem = Problem()
     dict_possible_moves = problem.get_possible_moves(state)
@@ -30,9 +32,12 @@ def move(board, player, remain_time_x, remain_time_y):
         for possible_move in possible_position_moves:
             all_possible_moves.append((position, possible_move))
 
-    number_possible_moves = len(all_possible_moves)
-    random_number = random.randint(0, number_possible_moves-1)
-    return all_possible_moves[random_number]
+    # number_possible_moves = len(all_possible_moves)
+    # random_number = random.randint(0, number_possible_moves-1)
+    # return all_possible_moves[random_number]
+
+    random_move = random.choice(all_possible_moves)
+    return random_move
 
 
 if __name__ == '__main__':

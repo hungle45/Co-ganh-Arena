@@ -1,5 +1,8 @@
 import sys
 
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
 import pygame
 import pygame_menu
 
@@ -156,5 +159,5 @@ if __name__ == '__main__':
             menu.mainloop(surface)
         except:
             pass
-        
+
         pygame.display.update()

@@ -3,10 +3,13 @@ import sys
 import random
 import time
 from multiprocessing import Queue, Process
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 
 import pygame
+import numpy as np
 
-from algorithms import State,Problem,alpha,beta
+from algorithms import State,Problem,alpha,beta,_move_AI_bounder
 from constants import *
 
 
@@ -160,13 +163,24 @@ class BaseGameUI:
             else:
                 self.winner == -1
 
+        if self.remain_move_p1 == 0 and self.remain_move_p2 == 0:
+            self.over = True
+            count_p1 = np.sum(self.state.board ==  1)
+            count_p2 = np.sum(self.state.board == -1)
+            diff = count_p1 - count_p2
+            self.winner = (diff) / abs(diff)
+
         if self.winner is not None:
             if self.winner == 1:
                 msg = 'Blue win!!!'
                 win_color = P1_COLOR
-            else:
+            elif self.winner == -1:
                 msg = 'Red win!!!'
                 win_color = P2_COLOR
+            else:
+                msg = 'Draw'
+                win_color = BLACK
+
 
             font = pygame.font.Font(None, 50)
             text = font.render(msg, True, GRAY)
@@ -247,21 +261,6 @@ class HumanGameUIMixin():
 
 
 
-# _simulate_alpha
-def _alpha(board, player, remain_time_x, remain_time_y):
-    state = State(board, player)
-    all_moves = Problem().get_possible_moves(state)
-    random_key = random.choice(list(all_moves.keys()))
-    random_move = (random_key,random.choice(all_moves[random_key]))
-    time.sleep(1)
-    return random_move
-
-def _move_AI_bounder(board, player, remain_time_x, remain_time_y,algorithm,return_queue):
-    # move = algorithm(board, player, remain_time_x, remain_time_y)
-    move = _alpha(board, player, remain_time_x, remain_time_y)
-    return_queue.put(move)
-
-
 class ComputerGameUIMixin:
     def _handle_move_by_AI(self,algorithm):
         # simulate alpha
@@ -336,7 +335,7 @@ class HVCGameUI(ComputerGameUIMixin,HumanGameUIMixin,BaseGameUI):
         super(HVCGameUI,self).__init__(surface, w_height_size, w_width_size, max_move, max_total_time)
 
         self.algorithm = algorithm
-        self.remain_time_p1 = self.remain_time_p2 = max_total_time
+        self.remain_time_p1 = self.remain_time_p2 = max_total_time*1000 # (ms)
 
         # need when using ComputerGameUIMixin
         self.thinking_AI = False
@@ -368,7 +367,7 @@ class HVCGameUI(ComputerGameUIMixin,HumanGameUIMixin,BaseGameUI):
         text = font.render(f'Remain move: {self.remain_move_p1}', True, text_color)
         text_rect = text.get_rect(center=(pos[0],pos[1]-20))
         self.surface.blit(text, text_rect)
-        text = font.render(f'Time: {self.remain_time_p1:0.1f}s', True, text_color)
+        text = font.render(f'Time: {self.remain_time_p1/1000:0.1f}s', True, text_color)
         text_rect = text.get_rect(center=(pos[0],pos[1]))
         self.surface.blit(text, text_rect)
 
@@ -379,7 +378,7 @@ class HVCGameUI(ComputerGameUIMixin,HumanGameUIMixin,BaseGameUI):
         text = font.render(f'Remain move: {self.remain_move_p2}', True, text_color)
         text_rect = text.get_rect(center=(pos[0],pos[1]-20))
         self.surface.blit(text, text_rect)
-        text = font.render(f'Time: {self.remain_time_p2:0.1f}s', True, text_color)
+        text = font.render(f'Time: {self.remain_time_p2/1000:0.1f}s', True, text_color)
         text_rect = text.get_rect(center=(pos[0],pos[1]))
         self.surface.blit(text, text_rect)
 
@@ -397,9 +396,9 @@ class HVCGameUI(ComputerGameUIMixin,HumanGameUIMixin,BaseGameUI):
     def process(self,events,deltatime):
         if not self.over:
             if self.state.player == 1:
-                self.remain_time_p1 = max(0,self.remain_time_p1-deltatime/1000)
+                self.remain_time_p1 = max(0,self.remain_time_p1-deltatime)
             else:
-                self.remain_time_p2 = max(0,self.remain_time_p2-deltatime/1000)
+                self.remain_time_p2 = max(0,self.remain_time_p2-deltatime)
         super(HVCGameUI, self).process(events)
 
 
@@ -413,7 +412,7 @@ class CVCGameUI(ComputerGameUIMixin,BaseGameUI):
         
         self.algorithm1 = algorithm1
         self.algorithm2 = algorithm2
-        self.remain_time_p1 = self.remain_time_p2 = max_total_time
+        self.remain_time_p1 = self.remain_time_p2 = max_total_time*1000 # (ms)
         
             # need when using ComputerGameUIMixin
         self.thinking_AI = False
@@ -437,7 +436,7 @@ class CVCGameUI(ComputerGameUIMixin,BaseGameUI):
         text = font.render(f'Remain move: {self.remain_move_p1}', True, text_color)
         text_rect = text.get_rect(center=(pos[0],pos[1]-20))
         self.surface.blit(text, text_rect)
-        text = font.render(f'Time: {self.remain_time_p1:0.1f}s', True, text_color)
+        text = font.render(f'Time: {self.remain_time_p1/1000:0.1f}s', True, text_color)
         text_rect = text.get_rect(center=(pos[0],pos[1]))
         self.surface.blit(text, text_rect)
 
@@ -448,7 +447,7 @@ class CVCGameUI(ComputerGameUIMixin,BaseGameUI):
         text = font.render(f'Remain move: {self.remain_move_p2}', True, text_color)
         text_rect = text.get_rect(center=(pos[0],pos[1]-20))
         self.surface.blit(text, text_rect)
-        text = font.render(f'Time: {self.remain_time_p2:0.1f}s', True, text_color)
+        text = font.render(f'Time: {self.remain_time_p2/1000:0.1f}s', True, text_color)
         text_rect = text.get_rect(center=(pos[0],pos[1]))
         self.surface.blit(text, text_rect)
 
@@ -464,9 +463,9 @@ class CVCGameUI(ComputerGameUIMixin,BaseGameUI):
     def process(self,events,deltatime):
         if not self.over:
             if self.state.player == 1:
-                self.remain_time_p1 = max(0,self.remain_time_p1-deltatime/1000)
+                self.remain_time_p1 = max(0,self.remain_time_p1-deltatime)
             else:
-                self.remain_time_p2 = max(0,self.remain_time_p2-deltatime/1000)
+                self.remain_time_p2 = max(0,self.remain_time_p2-deltatime)
         super(CVCGameUI, self).process(events)
 
 
