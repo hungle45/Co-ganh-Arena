@@ -138,7 +138,11 @@ if __name__ == '__main__':
         events = pygame.event.get()
 
         if CURRENT_STATE in ['HvH','HvC','CvC']:
-            GAME.process(events)
+            if CURRENT_STATE == 'HvH':
+                GAME.process(events)
+            else:
+                GAME.process(events,deltatime)
+                
             if GAME.should_quit():
                 CURRENT_STATE = 'MENU'
                 menu.enable()
