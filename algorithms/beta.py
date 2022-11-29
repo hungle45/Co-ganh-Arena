@@ -23,16 +23,16 @@ def move(board, player, remain_time_x, remain_time_y):
     '''
     state = State(board, player)
     problem = Problem()
-    dict_possible_move = problem.get_possible_moves(state)
-    all_possible_move = []
+    dict_possible_moves = problem.get_possible_moves(state)
+    all_possible_moves = []
 
-    for position, possible_position_moves in dict_possible_move.items():
+    for position, possible_position_moves in dict_possible_moves.items():
         for possible_move in possible_position_moves:
-            all_possible_move.append((position, possible_move))
+            all_possible_moves.append((position, possible_move))
 
-    number_possible_moves = len(all_possible_move)
+    number_possible_moves = len(all_possible_moves)
     random_number = random.randint(0, number_possible_moves)
-    return all_possible_move[random_number]
+    return all_possible_moves[random_number]
 
 
 if __name__ == '__main__':
