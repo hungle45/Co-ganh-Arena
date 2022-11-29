@@ -62,10 +62,10 @@ class BaseGameUI:
         return can_do
 
         # simulate move action
-        self.state.board[action[1]] = self.state.board[action[0]]
-        self.state.board[action[0]] = 0
-        self.state.player *= -1
-        return True
+        # self.state.board[action[1]] = self.state.board[action[0]]
+        # self.state.board[action[0]] = 0
+        # self.state.player *= -1
+        # return True
 
 
     def _process_input(self, events):
