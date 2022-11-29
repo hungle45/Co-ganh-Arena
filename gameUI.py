@@ -159,9 +159,9 @@ class BaseGameUI:
         if not self.over and self.state.check_winning_state() != 0:
             self.over = True
             if self.state.check_winning_state() == 1:
-                self.winner == 1
+                self.winner = 1
             else:
-                self.winner == -1
+                self.winner = -1
 
         if self.remain_move_p1 == 0 and self.remain_move_p2 == 0:
             self.over = True
