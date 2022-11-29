@@ -18,7 +18,7 @@ def move(board, player, remain_time_x, remain_time_y):
         Output
         ----------
             random action from all possible action.
-            eg. ((1,1),(1,2)).
+            eg. ((1,1),(1,2)).  
 
     '''
     state = State(board, player)
