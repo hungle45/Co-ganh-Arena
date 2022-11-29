@@ -225,20 +225,6 @@ class Problem:
         down_cond = (coor_y < state.height - 1)
         is_left_append, is_right_append, is_up_append, is_down_append = False, False, False, False
 
-        if left_cond:
-            if state.board[coor_y, coor_x - 1] == -player:
-                if coor_x > 1:
-                    if state.board[coor_y, coor_x - 2] == player:
-                        capture_list.append((coor_y, coor_x - 1))
-                        is_left_append = True
-        
-        if right_cond:
-            if state.board[coor_y, coor_x + 1] == -player:
-                if coor_x < state.width - 2:
-                    if state.board[coor_y, coor_x + 2] == player:
-                        capture_list.append((coor_y, coor_x + 1))
-                        is_right_append = True
-
         if left_cond and right_cond:
             left_pos = state.board[coor_y, coor_x - 1]
             right_pos = state.board[coor_y, coor_x + 1]
@@ -250,20 +236,6 @@ class Problem:
                 if not is_right_append:
                     capture_list.append((coor_y, coor_x + 1))
                     is_right_append = True
-        
-        if up_cond:
-            if state.board[coor_y - 1, coor_x] == -player:
-                if coor_y > 1:
-                    if state.board[coor_y - 2, coor_x] == player:
-                        capture_list.append((coor_y - 1, coor_x))
-                        is_up_append = True
-
-        if down_cond:
-            if state.board[coor_y + 1, coor_x] == -player:
-                if coor_y < state.height - 2:
-                    if state.board[coor_y + 2, coor_x] == player:
-                        capture_list.append((coor_y + 1, coor_x))
-                        is_down_append = True
 
         if up_cond and down_cond:
             up_pos = state.board[coor_y - 1, coor_x]
@@ -282,21 +254,7 @@ class Problem:
             top_right_cond = ((coor_y > 0) & (coor_x + 1 < state.width))
             bottom_left_cond = ((coor_y + 1 < state.height) & (coor_x > 0))
             bottom_right_cond = ((coor_y + 1 < state.height) & (coor_x + 1 < state.width))
-            is_top_left_append, is_top_right_append, is_bottom_left_append, is_bottom_right_append = False, False, False, False
-
-            if top_left_cond:
-                if state.board[coor_y - 1, coor_x - 1] == -player:
-                    if ((coor_x > 1) & (coor_y > 1)):
-                        if state.board[coor_y - 2, coor_x - 2] == player:
-                            capture_list.append((coor_y - 1, coor_x - 1))
-                            is_top_left_append = True
-
-            if bottom_right_cond:
-                if state.board[coor_y + 1, coor_x + 1] == -player:
-                    if ((coor_y < state.height - 2) & (coor_x < state.width - 2)):
-                        if state.board[coor_y + 2, coor_x + 2] == player:
-                            capture_list.append((coor_y + 1, coor_x + 1)) 
-                            is_bottom_right_append = True                
+            is_top_left_append, is_top_right_append, is_bottom_left_append, is_bottom_right_append = False, False, False, False             
 
             if top_left_cond and bottom_right_cond:
                 top_left_pos = state.board[coor_y - 1, coor_x - 1]
@@ -308,21 +266,7 @@ class Problem:
 
                     if not is_bottom_right_append:
                         capture_list.append((coor_y + 1, coor_x + 1))
-                        is_bottom_right_append = True                                  
-
-            if top_right_cond:
-                if state.board[coor_y - 1, coor_x + 1] == -player:
-                    if ((coor_y > 1) & (coor_x < state.width - 2)):
-                        if state.board[coor_y - 2, coor_x + 2] == player:
-                            capture_list.append((coor_y - 1, coor_x + 1))
-                            is_top_right_append = True
-
-            if bottom_left_cond:
-                if state.board[coor_y + 1, coor_x - 1] == -player:
-                    if ((coor_y < state.height - 2) & (coor_x > 1)):
-                        if state.board[coor_y + 2, coor_x - 2] == player:
-                            capture_list.append((coor_y + 1, coor_x - 1)) 
-                            is_bottom_left_append = True  
+                        is_bottom_right_append = True                                   
 
             if top_right_cond and bottom_left_cond:
                 top_right_pos = state.board[coor_y - 1, coor_x + 1]
