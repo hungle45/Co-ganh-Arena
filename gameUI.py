@@ -168,7 +168,7 @@ class BaseGameUI:
             count_p1 = np.sum(self.state.board ==  1)
             count_p2 = np.sum(self.state.board == -1)
             diff = count_p1 - count_p2
-            self.winner = (diff) / abs(diff)
+            self.winner = (diff) / abs(diff) if diff != 0 else 0
 
         if self.winner is not None:
             if self.winner == 1:
