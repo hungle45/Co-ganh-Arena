@@ -335,6 +335,7 @@ class HVCGameUI(ComputerGameUIMixin,HumanGameUIMixin,BaseGameUI):
         super(HVCGameUI,self).__init__(surface, w_height_size, w_width_size, max_move, max_total_time)
 
         self.algorithm = algorithm
+        self.first_call = True # prevent calc wait-for-menu time in remain_time_p1
         self.remain_time_p1 = self.remain_time_p2 = max_total_time*1000 # (ms)
 
         # need when using ComputerGameUIMixin
@@ -394,6 +395,10 @@ class HVCGameUI(ComputerGameUIMixin,HumanGameUIMixin,BaseGameUI):
 
 
     def process(self,events,deltatime):
+        if self.first_call:
+            self.first_call = False
+            return
+
         if not self.over:
             if self.state.player == 1:
                 self.remain_time_p1 = max(0,self.remain_time_p1-deltatime)
@@ -412,9 +417,10 @@ class CVCGameUI(ComputerGameUIMixin,BaseGameUI):
         
         self.algorithm1 = algorithm1
         self.algorithm2 = algorithm2
+        self.first_call = True # prevent calc wait-for-menu time in remain_time_p1
         self.remain_time_p1 = self.remain_time_p2 = max_total_time*1000 # (ms)
         
-            # need when using ComputerGameUIMixin
+        # need when using ComputerGameUIMixin
         self.thinking_AI = False
         self.move_AI_process = None
         self.return_queue = None
@@ -461,6 +467,10 @@ class CVCGameUI(ComputerGameUIMixin,BaseGameUI):
 
 
     def process(self,events,deltatime):
+        if self.first_call:
+            self.first_call = False
+            return
+
         if not self.over:
             if self.state.player == 1:
                 self.remain_time_p1 = max(0,self.remain_time_p1-deltatime)
