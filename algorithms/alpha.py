@@ -31,7 +31,7 @@ def move(board, player, remain_time_x, remain_time_y):
             all_possible_moves.append((position, possible_move))
 
     number_possible_moves = len(all_possible_moves)
-    random_number = random.randint(0, number_possible_moves)
+    random_number = random.randint(0, number_possible_moves-1)
     return all_possible_moves[random_number]
 
 
