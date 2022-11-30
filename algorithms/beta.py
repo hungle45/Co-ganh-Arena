@@ -33,7 +33,7 @@ def minimax(state, depth, alpha, beta):
         return np.sum(state.board)
 
     if(depth == 0):
-        return calculatePoint(state)
+        return (), calculatePoint(state)
     problem = Problem()
 
     _add_visited_state(state)
@@ -48,14 +48,14 @@ def minimax(state, depth, alpha, beta):
                 next_state = problem.move(state, (start, end))
                 if(_is_visited(next_state)):
                     continue
-                value = minimax(next_state, depth-1, alpha, beta)
+                action, value = minimax(next_state, depth-1, alpha, beta)
                 if value > max_value:
                     max_value = value
                     bestAction = (start, end)
                 alpha = max(alpha, max_value)
                 if(beta <= alpha):
                     break
-        return max_value
+        return bestAction, max_value
     else:
         min_value = 1000
         for start, possible_moves in dict_possible_moves.items():
@@ -63,14 +63,14 @@ def minimax(state, depth, alpha, beta):
                 next_state = problem.move(state, (start, end))
                 if(_is_visited(next_state)):
                     continue
-                value = minimax(next_state, depth-1, alpha, beta)
+                action, value = minimax(next_state, depth-1, alpha, beta)
                 if value < min_value:
                     min_value = value
                     bestAction = (start, end)
                 beta = min(beta, min_value)
                 if(beta <= alpha):
                     break
-        return min_value
+        return bestAction, min_value
 
 
 def move(board, player, remain_time_x, remain_time_y):
@@ -91,8 +91,8 @@ def move(board, player, remain_time_x, remain_time_y):
 
     state = State(board, player)
     problem = Problem()
-    value = minimax(state, 7, -1000, 1000)
-    return value
+    action, value = minimax(state, 5, -1000, 1000)
+    return action
 
 
 if __name__ == '__main__':
