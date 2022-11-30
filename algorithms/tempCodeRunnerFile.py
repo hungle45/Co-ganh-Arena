@@ -1,1 +1,0 @@
-a = move(board, player, 1, 1)

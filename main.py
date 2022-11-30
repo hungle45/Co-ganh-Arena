@@ -1,5 +1,8 @@
 import sys
 
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
 import pygame
 import pygame_menu
 
@@ -138,7 +141,11 @@ if __name__ == '__main__':
         events = pygame.event.get()
 
         if CURRENT_STATE in ['HvH','HvC','CvC']:
-            GAME.process(events)
+            if CURRENT_STATE == 'HvH':
+                GAME.process(events)
+            else:
+                GAME.process(events,deltatime)
+                
             if GAME.should_quit():
                 CURRENT_STATE = 'MENU'
                 menu.enable()
@@ -152,5 +159,5 @@ if __name__ == '__main__':
             menu.mainloop(surface)
         except:
             pass
-        
+
         pygame.display.update()
