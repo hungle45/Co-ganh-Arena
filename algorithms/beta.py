@@ -21,21 +21,27 @@ def move(board, player, remain_time_x, remain_time_y):
             eg. ((1,1),(1,2)).  
 
     '''
+    def calculatePoint(state: State):
+        totalPoint = 0
+        for coor_y in range(state.height):
+            for coor_x in range(state.width):
+                totalPoint += state.board[coor_x][coor_y]
+        return totalPoint
 
     def minimax(state, depth, alpha, beta):
         if(depth == 0):
-            return state.check_winning_state()
+            return calculatePoint(state)
         problem = Problem()
 
+        # Get all possible actions
         dict_possible_moves = problem.get_possible_moves(state)
         all_possible_moves = []
-
         for position, possible_position_moves in dict_possible_moves.items():
             for possible_move in possible_position_moves:
                 all_possible_moves.append((position, possible_move))
 
         if(state.player == 1):
-            maxPoint = -1
+            maxPoint = -1000
             for possible_move in all_possible_moves:
                 next_state = problem.move(state, possible_move)
                 point = minimax(next_state, depth-1, alpha, beta)
@@ -45,7 +51,7 @@ def move(board, player, remain_time_x, remain_time_y):
                     break
             return maxPoint
         else:
-            minPoint = 1
+            minPoint = 1000
             for possible_move in all_possible_moves:
                 next_state = problem.move(state, possible_move)
                 point = minimax(next_state, depth-1, alpha, beta)
@@ -56,7 +62,7 @@ def move(board, player, remain_time_x, remain_time_y):
             return minPoint
 
     state = State(board, player)
-    a = minimax(state, 2, -1, 1)
+    a = minimax(state, 2, -1000, 1000)
     print(a)
 
 
@@ -67,4 +73,4 @@ if __name__ == '__main__':
              [-1,  0,  0,  0, -1],
              [-1, -1, -1, -1, -1]]
     player = 1
-    a = move(board, player, 1, 1)
+    move(board, player, 1, 1)
