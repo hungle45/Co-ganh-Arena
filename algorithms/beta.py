@@ -50,14 +50,14 @@ def move(board, player, remain_time_x, remain_time_y):
                 next_state = problem.move(state, possible_move)
                 point = minimax(next_state, depth-1, alpha, beta)
                 minPoint = min(minPoint, point)
-                beta = min(alpha, minPoint)
+                beta = min(beta, minPoint)
                 if(beta <= alpha):
-                    minPoint
+                    break
             return minPoint
 
-    # state = State(board, player)
-    # a = minimax(state, 1, -1, 1)
-    # print(a)
+    state = State(board, player)
+    a = minimax(state, 2, -1, 1)
+    print(a)
 
 
 if __name__ == '__main__':
