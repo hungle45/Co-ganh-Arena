@@ -1,12 +1,15 @@
 from collections import deque, defaultdict
 import copy
+import time
 
 import numpy as np
 
 def _move_AI_bounder(board, player, remain_time_x, remain_time_y,algorithm,return_queue):
     # move = algorithm(board, player, remain_time_x, remain_time_y)
+    start_time = time.time()
     move = algorithm(board, player, remain_time_x, remain_time_y)
-    return_queue.put(move)
+    end_time = time.time()
+    return_queue.put((move,(end_time-start_time)*1000))
 
 
 class State:

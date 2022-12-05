@@ -61,12 +61,6 @@ class BaseGameUI:
 
         return can_do
 
-        # simulate move action
-        # self.state.board[action[1]] = self.state.board[action[0]]
-        # self.state.board[action[0]] = 0
-        # self.state.player *= -1
-        # return True
-
 
     def _process_input(self, events):
         for event in events:
@@ -273,7 +267,11 @@ class ComputerGameUIMixin:
             self.move_AI_process.daemon = True
             self.move_AI_process.start()
         if self.move_AI_process is not None and not self.move_AI_process.is_alive():
-            ai_move = self.return_queue.get()
+            ai_move, time_thinking = self.return_queue.get()
+            if self.state.player == 1:
+                self.time_thinking_p1 = time_thinking
+            else:
+                self.time_thinking_p2 = time_thinking
             self._make_move(ai_move)
             self.thinking_AI = False
 
@@ -340,6 +338,7 @@ class HVCGameUI(ComputerGameUIMixin,HumanGameUIMixin,BaseGameUI):
 
         # need when using ComputerGameUIMixin
         self.thinking_AI = False
+        self.time_thinking_p2 = 0
         self.move_AI_process = None
         self.return_queue = None
 
@@ -382,6 +381,9 @@ class HVCGameUI(ComputerGameUIMixin,HumanGameUIMixin,BaseGameUI):
         text = font.render(f'Time: {self.remain_time_p2/1000:0.1f}s', True, text_color)
         text_rect = text.get_rect(center=(pos[0],pos[1]))
         self.surface.blit(text, text_rect)
+        text = font.render(f'Last move: {self.time_thinking_p2/1000:0.1f}s', True, text_color)
+        text_rect = text.get_rect(center=(pos[0],pos[1]+20))
+        self.surface.blit(text, text_rect)
 
     def _draw(self):
         super(HVCGameUI,self)._draw()
@@ -422,6 +424,8 @@ class CVCGameUI(ComputerGameUIMixin,BaseGameUI):
         
         # need when using ComputerGameUIMixin
         self.thinking_AI = False
+        self.time_thinking_p1 = 0
+        self.time_thinking_p2 = 0
         self.move_AI_process = None
         self.return_queue = None
 
@@ -445,6 +449,9 @@ class CVCGameUI(ComputerGameUIMixin,BaseGameUI):
         text = font.render(f'Time: {self.remain_time_p1/1000:0.1f}s', True, text_color)
         text_rect = text.get_rect(center=(pos[0],pos[1]))
         self.surface.blit(text, text_rect)
+        text = font.render(f'Last move: {self.time_thinking_p1/1000:0.1f}s', True, text_color)
+        text_rect = text.get_rect(center=(pos[0],pos[1]+20))
+        self.surface.blit(text, text_rect)
 
     def _draw_player_2_info(self, text_color, pos):        
         super(CVCGameUI, self)._draw_player_info('Bot 2',text_color, pos)
@@ -455,6 +462,9 @@ class CVCGameUI(ComputerGameUIMixin,BaseGameUI):
         self.surface.blit(text, text_rect)
         text = font.render(f'Time: {self.remain_time_p2/1000:0.1f}s', True, text_color)
         text_rect = text.get_rect(center=(pos[0],pos[1]))
+        self.surface.blit(text, text_rect)
+        text = font.render(f'Last move: {self.time_thinking_p2/1000:0.1f}s', True, text_color)
+        text_rect = text.get_rect(center=(pos[0],pos[1]+20))
         self.surface.blit(text, text_rect)
 
     def _draw(self):
