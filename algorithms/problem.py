@@ -315,7 +315,6 @@ class Problem:
                     # print(check_liberty)
                     # print(visited)
                     if not check_liberty:
-                        print(list(visited))
 
                         for position, _ in visited.items():
                             state.board[position] = state.player
