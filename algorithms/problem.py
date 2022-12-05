@@ -163,14 +163,28 @@ class Problem:
             return pos[0]*1000 + pos[1]
 
         dictionary = dict({})
+        dictionary_capture = dict({})
+        is_capture = False
         for coor_y in range(state.height):
             for coor_x in range(state.width):
                 if state.board[coor_y, coor_x] == state.player:
                     position, _ = self.get_possible_position_and_liberty(state, (coor_y, coor_x))
-
-                    if (position):
+                    possible_position = []
+                    for value in position:
+                        check_state = copy.deepcopy(state)
+                        check_state.board[value] = check_state.board[coor_y, coor_x]
+                        check_state.board[coor_y, coor_x] = 0
+                        if (self.capture(check_state, value)):
+                            is_capture = True
+                            possible_position.append(value)
+                    if (is_capture):
+                        dictionary_capture[coor_y, coor_x] = sorted(possible_position, key= compare_pos)
+                    else:
                         dictionary[(coor_y, coor_x)] = sorted(position, key= compare_pos)
-        return dictionary    
+        if is_capture:
+            return dictionary_capture
+        else: 
+            return dictionary   
                
     def is_liberty(self, state: State, pos: tuple):
         '''
