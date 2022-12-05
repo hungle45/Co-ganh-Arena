@@ -109,6 +109,12 @@ class BaseGameUI:
         self._draw_grid()
         self._draw_diagonal()
 
+    def _draw_moveable_piece(self):
+        for piece,targets in self.problem.get_possible_moves(self.state).items():
+            if len(targets) == 0: continue
+            self._draw_piece(GRAY,piece[0],
+                piece[1],self.PIECE_RADIUS+4)
+
     def _draw_player_info(self,title,text_color,pos):
         # render background
         pygame.draw.rect(self.surface,WHITE,
@@ -124,6 +130,7 @@ class BaseGameUI:
     def _draw(self):
         self.surface.fill(BG_COLOR)
         self._draw_board()
+        self._draw_moveable_piece()
 
         # draw pieces
         for x in range(5):
@@ -134,6 +141,7 @@ class BaseGameUI:
                     self._draw_piece(P2_COLOR, x, y)
                 else:
                     self._draw_intersection_point(x,y)
+
                     
         # Player infor
         text_color_p1,text_color_p2 = (BLACK,GRAY) \
@@ -270,8 +278,10 @@ class ComputerGameUIMixin:
             ai_move, time_thinking = self.return_queue.get()
             if self.state.player == 1:
                 self.time_thinking_p1 = time_thinking
+                self.remain_time_p1 -= self.time_thinking_p1
             else:
                 self.time_thinking_p2 = time_thinking
+                self.remain_time_p2 -= self.time_thinking_p2
             self._make_move(ai_move)
             self.thinking_AI = False
 
@@ -333,7 +343,7 @@ class HVCGameUI(ComputerGameUIMixin,HumanGameUIMixin,BaseGameUI):
         super(HVCGameUI,self).__init__(surface, w_height_size, w_width_size, max_move, max_total_time)
 
         self.algorithm = algorithm
-        self.first_call = True # prevent calc wait-for-menu time in remain_time_p1
+        # self.first_call = True # prevent calc wait-for-menu time in remain_time_p1
         self.remain_time_p1 = self.remain_time_p2 = max_total_time*1000 # (ms)
 
         # need when using ComputerGameUIMixin
@@ -367,9 +377,6 @@ class HVCGameUI(ComputerGameUIMixin,HumanGameUIMixin,BaseGameUI):
         text = font.render(f'Remain move: {self.remain_move_p1}', True, text_color)
         text_rect = text.get_rect(center=(pos[0],pos[1]-20))
         self.surface.blit(text, text_rect)
-        text = font.render(f'Time: {self.remain_time_p1/1000:0.1f}s', True, text_color)
-        text_rect = text.get_rect(center=(pos[0],pos[1]))
-        self.surface.blit(text, text_rect)
 
     def _draw_player_2_info(self, text_color, pos):        
         super(HVCGameUI, self)._draw_player_info('Bot 2',text_color, pos)
@@ -397,15 +404,15 @@ class HVCGameUI(ComputerGameUIMixin,HumanGameUIMixin,BaseGameUI):
 
 
     def process(self,events,deltatime):
-        if self.first_call:
-            self.first_call = False
-            return
+        # if self.first_call:
+        #     self.first_call = False
+        #     return
 
-        if not self.over:
-            if self.state.player == 1:
-                self.remain_time_p1 = max(0,self.remain_time_p1-deltatime)
-            else:
-                self.remain_time_p2 = max(0,self.remain_time_p2-deltatime)
+        # if not self.over:
+        #     if self.state.player == 1:
+        #         self.remain_time_p1 = max(0,self.remain_time_p1-deltatime)
+        #     else:
+        #         self.remain_time_p2 = max(0,self.remain_time_p2-deltatime)
         super(HVCGameUI, self).process(events)
 
 
@@ -419,7 +426,7 @@ class CVCGameUI(ComputerGameUIMixin,BaseGameUI):
         
         self.algorithm1 = algorithm1
         self.algorithm2 = algorithm2
-        self.first_call = True # prevent calc wait-for-menu time in remain_time_p1
+        # self.first_call = True # prevent calc wait-for-menu time in remain_time_p1
         self.remain_time_p1 = self.remain_time_p2 = max_total_time*1000 # (ms)
         
         # need when using ComputerGameUIMixin
@@ -477,15 +484,15 @@ class CVCGameUI(ComputerGameUIMixin,BaseGameUI):
 
 
     def process(self,events,deltatime):
-        if self.first_call:
-            self.first_call = False
-            return
+        # if self.first_call:
+        #     self.first_call = False
+        #     return
 
-        if not self.over:
-            if self.state.player == 1:
-                self.remain_time_p1 = max(0,self.remain_time_p1-deltatime)
-            else:
-                self.remain_time_p2 = max(0,self.remain_time_p2-deltatime)
+        # if not self.over:
+        #     if self.state.player == 1:
+        #         self.remain_time_p1 = max(0,self.remain_time_p1-deltatime)
+        #     else:
+        #         self.remain_time_p2 = max(0,self.remain_time_p2-deltatime)
         super(CVCGameUI, self).process(events)
 
 
