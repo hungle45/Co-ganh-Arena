@@ -178,9 +178,11 @@ class Problem:
                             is_capture = True
                             possible_position.append(value)
                     if (is_capture):
-                        dictionary_capture[coor_y, coor_x] = sorted(possible_position, key= compare_pos)
+                        if possible_position:
+                            dictionary_capture[coor_y, coor_x] = sorted(possible_position, key= compare_pos)
                     else:
-                        dictionary[(coor_y, coor_x)] = sorted(position, key= compare_pos)
+                        if position:
+                            dictionary[(coor_y, coor_x)] = sorted(position, key= compare_pos)
         if is_capture:
             return dictionary_capture
         else: 
