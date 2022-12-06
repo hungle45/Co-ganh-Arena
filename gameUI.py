@@ -279,7 +279,7 @@ class ComputerGameUIMixin:
             ai_move, time_thinking = self.return_queue.get()
 
             if time_thinking > 3000:
-                print("\33[91m" + "Warning: Thinking time must less than 3s" + "\33[0m")
+                print(f"\33[91m[WARNING] Thinking time p{(-self.state.player+1)//2+1} (= {time_thinking/1000:0.1f}s) must less than 3s\33[0m")
 
             if self.state.player == 1:
                 self.time_thinking_p1 = time_thinking

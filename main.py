@@ -7,13 +7,15 @@ import pygame
 import pygame_menu
 
 from constants import *
-from algorithms import alpha,beta
+from algorithms import alpha,beta,delta
 from gameUI import HVHGameUI,HVCGameUI,CVCGameUI
 
 # Global Constant
 ALGORITHM_CHOICES = [
     ('Alpha',alpha),
     ('Beta',beta),
+
+    ('Delta',delta),
 ]
 
 # Global Variable
