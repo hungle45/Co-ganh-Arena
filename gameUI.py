@@ -3,8 +3,9 @@ import sys
 import random
 import time
 from multiprocessing import Queue, Process
-from os import environ
+from os import environ, system
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+system("")
 
 import pygame
 import numpy as np
@@ -276,6 +277,10 @@ class ComputerGameUIMixin:
             self.move_AI_process.start()
         if self.move_AI_process is not None and not self.move_AI_process.is_alive():
             ai_move, time_thinking = self.return_queue.get()
+
+            if time_thinking > 3000:
+                print("\33[91m" + "Warning: Thinking time must less than 3s" + "\33[0m")
+
             if self.state.player == 1:
                 self.time_thinking_p1 = time_thinking
                 self.remain_time_p1 -= self.time_thinking_p1
