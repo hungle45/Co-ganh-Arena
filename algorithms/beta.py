@@ -1,17 +1,19 @@
 
+from algorithms.problem import State, Problem
 import numpy as np
 import sys
 import os
 import random
+import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from algorithms.problem import State, Problem
+
 
 def hash_state(state: State):
-    hash_value = ''
+    hash_value = 1 << 31
     for coor_y in range(state.height):
         for coor_x in range(state.width):
-            hash_value += chr(98+state.board[coor_y][coor_x])
-    hash_value += chr(98+state.player)
+            hash_value = hash_value << 2 | (2+state.board[coor_y][coor_x])
+    hash_value = hash_value << 2 | (2+state.player)
     return hash_value
 
 
@@ -96,11 +98,15 @@ def move(board, player, remain_time_x, remain_time_y):
 
 
 if __name__ == '__main__':
-    board = [[1,  1,  1,  1,  1],
+    start = time.time()
+    board = [[-1,  1,  1,  1,  1],
              [1,  0,  0,  0,  1],
              [1,  0,  0,  0, 1],
              [-1,  0,  0,  0, -1],
-             [1, 1, 1, -1, 1]]
+             [1, 1, 1, 1, 1]]
     player = 1
+    state = State(board, player)
+    hash_state(state)
+    print(1)
     a = move(board, player, 1, 1)
-    print(a)
+    print(time.time()-start)
