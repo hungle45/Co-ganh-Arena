@@ -119,10 +119,12 @@ class Problem:
                                     if state.board[opposite_pos] == -state.player:
                                         possible_capture.add(next_move)
                                         is_cap = True 
-                    if(is_cap):                                          
-                        dictionary_capture[coor_y, coor_x] = list(possible_capture)
+                    if(is_cap):
+                        if (possible_capture):                                       
+                            dictionary_capture[coor_y, coor_x] = list(possible_capture)
                     else:
-                        dictionary[coor_y, coor_x] = next_moves
+                        if(next_moves):
+                            dictionary[coor_y, coor_x] = next_moves
         if (not is_cap):
             return dictionary
         else:
