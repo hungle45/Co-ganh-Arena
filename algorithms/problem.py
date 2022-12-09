@@ -68,7 +68,7 @@ class Problem:
     def capture(self, state: State, pos_action: tuple):
         player = state.board[pos_action]
         coor_y, coor_x = pos_action
-        capture_list = set()
+        capture_list = []
         flat_coor = coor_y * state.width + coor_x
         neighbor = self.get_valid_neighbors(state, pos_action)
         for pos in neighbor:
@@ -77,8 +77,8 @@ class Problem:
                 opposite_pos = divmod(flat_coor*2 - flat_pos, state.width)
                 if opposite_pos in neighbor:
                     if state.board[opposite_pos] == -player:
-                        capture_list.add(pos)
-        return list(capture_list) 
+                        capture_list.append(pos)
+        return capture_list
 
     def get_possible_moves(self, state:State):
         '''
@@ -105,8 +105,9 @@ class Problem:
             for coor_x in range(state.width):      
                 if state.board[coor_y, coor_x] == state.player:  
                     next_moves = self.can_move(state, (coor_y, coor_x))
-                    possible_capture = set()
+                    possible_capture = []
                     for next_move in next_moves:
+                        is_opposite = False
                         flat_coor = next_move[0] * state.width + next_move[1]
                         neighbor = self.get_valid_neighbors(state, next_move)
                         for pos in neighbor:
@@ -117,8 +118,10 @@ class Problem:
                                 opposite_pos = divmod(flat_coor*2 - flat_pos, state.width)
                                 if opposite_pos in neighbor:
                                     if state.board[opposite_pos] == -state.player:
-                                        possible_capture.add(next_move)
+                                        is_opposite = True
                                         is_cap = True 
+                        if is_opposite:
+                            possible_capture.append(next_move)
                     if(is_cap):
                         if (possible_capture):                                       
                             dictionary_capture[coor_y, coor_x] = list(possible_capture)
