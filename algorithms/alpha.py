@@ -6,7 +6,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from algorithms.problem import State, Problem
 
 
-def move(board, player, remain_time_x, remain_time_y):
+def move(prev_board, board, player, remain_time_x, remain_time_y):
     '''
         Get random move
 
@@ -24,8 +24,9 @@ def move(board, player, remain_time_x, remain_time_y):
     '''
 
     state = State(board, player)
+    prev_state = State(prev_board, -player)
     problem = Problem()
-    dict_possible_moves = problem.get_possible_moves(state)
+    dict_possible_moves = problem.get_possible_moves(prev_state, state)
     all_possible_moves = []
 
     for position, possible_position_moves in dict_possible_moves.items():

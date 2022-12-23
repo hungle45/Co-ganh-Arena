@@ -1,15 +1,5 @@
-from collections import deque
-import copy
-import time
-
 import numpy as np
-
-def _move_AI_bounder(board, player, remain_time_x, remain_time_y,algorithm,return_queue):
-    # move = algorithm(board, player, remain_time_x, remain_time_y)
-    start_time = time.time()
-    move = algorithm(board, player, remain_time_x, remain_time_y)
-    end_time = time.time()
-    return_queue.put((move,(end_time-start_time)*1000))
+import random
 
 
 class State:
@@ -154,81 +144,123 @@ class Problem:
                 return output_dict
             else:
                 return capture_dict                
-                 
-    def move(self, state: State, action, inplace=False):
-        '''
-        Do action.
+
+
+def move(prev_board, board, player, remain_time_x, remain_time_y):
+    '''
+        Get random move
 
         Input
         ----------
-            state: input State.
-            action: eg. ((1,1),(1,2)).
-            inplace: False if return copy of state and otherwise.
-            
+            board: map(5*5);
+            player: 1 or -1, represent for player
+            remain_time_x: Time remain (ms)
+            remain_time_y: Time remain (ms)
         Output
         ----------
-            state: state after do action.
-                   None if inplace is True.
-            
-        '''
-        if not inplace:
-            state = copy.deepcopy(state)
-        state.board[action[1]] = state.board[action[0]]
-        state.board[action[0]] = 0
-        capture_list = self.capture(state, action[1])
-        for pos in capture_list:
-            state.board[pos] = state.player
+            random action from all possible action.
+            eg. ((1,1),(1,2)).  
 
-        q = deque()
-        liberty_table = copy.deepcopy(state.board)
-        for coor_y in range(state.height):
-            for coor_x in range(state.width):
-                if (state.board[coor_y, coor_x] == 0):
-                    q.append((coor_y, coor_x))
-                    liberty_table[coor_y, coor_x] = 3
+    '''
 
-        while (len(q) > 0):
-            cur = q.popleft()
-            neighbor = self.get_valid_neighbors(state, cur)
-            for value in neighbor:
-                if liberty_table[value] == -state.player:
-                    liberty_table[value] = 3
-                    q.append(value)
-        
-        for coor_y in range(state.height):
-            for coor_x in range(state.width):
-                if (liberty_table[coor_y, coor_x] == -state.player):
-                    state.board[coor_y, coor_x] = state.player        
-        state.player *= -1
+    state = State(board, player)
+    if (prev_board):
+        prev_state = State(prev_board, -player)
+    else:
+        prev_state = None
+    problem = Problem()
+    dict_possible_moves = problem.get_possible_moves(prev_state, state)
+    all_possible_moves = []
 
-        if not inplace:
-            return state
+    for position, possible_position_moves in dict_possible_moves.items():
+        for possible_move in possible_position_moves:
+            all_possible_moves.append((position, possible_move))
 
-    def move_if_possible(self, prev_state:State, state:State, action, inplace=False):
-        '''
-        Do action if possible.
+    random_move = random.choice(all_possible_moves)
+    return random_move
 
-        Input
-        ----------
-            state: input State.
-            action: eg. ((1,1),(1,2)).
-            inplace: False if return copy of state and otherwise.
-            
-        Output
-        ----------
-            can_do: true if can do action and otherwise.
-            state: state after do action.
-                   None if inplace is True.
-            
-        '''
-        if action[1] in self.get_possible_moves(prev_state, state).get(action[0], []):
-            return True,self.move(state, action, inplace)
-        return False, None
-
+def print_board(board: list):
+    height = len(board)
+    width = len(board[0])
+    for coor_y in range(height-1, -1, -1):
+        row = ""
+        for coor_x in range(width):
+            if (board[coor_y][coor_x] == 1):
+                row += "X "
+            elif (board[coor_y][coor_x] == -1):
+                row += "O "
+            else:
+                row += "- "
+        print(row)
 
 if __name__ == '__main__':
-    # Test Space
+    testcase1 = {
+        "prev_board": [[-1,  0,  -1,  0,  0],
+                      [1,  -1,  0,  1,  0],
+                      [1,  0,  0,  1, 1],
+                      [1,  1,  0,  -1, 1],
+                      [0, 1, 1, 1, 1]],
+        "board": [[-1,  0,  -1,  0,  0],
+                 [1,  0,  0,  1,  0],
+                 [1,  0,  -1,  1, 1],
+                 [1,  1,  0,  -1, 1],
+                 [0, 1, 1, 1, 1]]          
+    }
+    
+    testcase2 = {
+        "prev_board": None,
+        "board": [[1,  1,  1,  1,  1],
+                 [1,  0,  0,  0,  1],
+                 [1,  0,  0,  0, -1],
+                 [-1,  0,  0,  0, -1],
+                 [-1, -1, -1, -1, -1]]        
+    }
+
+    testcase3 = {
+        "prev_board": [[-1,  0,  0,  0,  0],
+                      [1,  -1,  0,  1,  0],
+                      [1,  0,  -1,  1, 1],
+                      [1,  1,  0,  -1, 1],
+                      [0, 1, 1, 1, 1]],
+        "board": [[-1,  0,  -1,  0,  0],
+                 [1,  0,  0,  1,  0],
+                 [1,  0,  -1,  1, 1],
+                 [1,  1,  0,  -1, 1],
+                 [0, 1, 1, 1, 1]]        
+    }
+
+    player = 1
+    chosen = int(input("Lựa chọn testcase (1/2/3): "))
     game = Problem()
-    dictionary = game.get_possible_moves(game.init_state)
-    for key, values in dictionary.items():
-        print(f'{key}: {values}')
+    if(chosen == 1):
+        print_board(testcase1["board"])
+        print()
+        state = State(testcase1["board"], player)
+        if(testcase1["prev_board"]):
+            prev_state = State(testcase1["prev_board"], -player)
+            print("Nuoc di mo:", game.get_possible_moves(prev_state, state))
+        else:
+            print("Nuoc di mo:", game.get_possible_moves(None, state))
+        print("Lua chon cua ban: ", move(testcase1["prev_board"], testcase1["board"], player, 1, 1))
+
+    if(chosen == 2):
+        print_board(testcase2["board"])
+        print()
+        state = State(testcase2["board"], player)
+        if(testcase2["prev_board"]):
+            prev_state = State(testcase2["prev_board"], -player)
+            print("Nuoc di mo:", game.get_possible_moves(prev_state, state))
+        else:
+            print("Nuoc di mo:", game.get_possible_moves(None, state))
+        print("Lua chon cua ban: ", move(testcase2["prev_board"], testcase2["board"], player, 1, 1))
+
+    if(chosen == 3):
+        print_board(testcase3["board"])
+        print()
+        state = State(testcase3["board"], player)
+        if(testcase3["prev_board"]):
+            prev_state = State(testcase3["prev_board"], -player)
+            print("Nuoc di mo:", game.get_possible_moves(prev_state, state))
+        else:
+            print("Nuoc di mo:", game.get_possible_moves(None, state))
+        print("Lua chon cua ban: ", move(testcase3["prev_board"], testcase3["board"], player, 1, 1))                             

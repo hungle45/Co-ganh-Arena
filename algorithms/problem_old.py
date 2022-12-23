@@ -1,4 +1,4 @@
-from collections import deque
+from collections import deque, defaultdict
 import copy
 import time
 
@@ -46,34 +46,6 @@ class Problem:
             player = 1
         )
 
-    def get_open_move(self, prev_state:State, state:State):
-        '''Get open move for given state
-        Input: 
-        ----------
-            prev_state: state before returning now state
-            state: input State.
-
-        Output
-        ----------
-            open_move: (prev_action, now_action) Prev_board ---> Present board
-            return None if no exist (Never occur unless state is INIT STATE) and otherwise
-        '''
-        if (not prev_state):
-            return None
-        prev_player = prev_state.player
-        now_player = state.player
-        prev_action = None
-        now_action = None
-        if(prev_player != -now_player):
-            raise Exception("Invalid state")
-        for coor_y in range(state.height):
-            for coor_x in range(state.width):
-                if ((prev_state.board[coor_y, coor_x] == prev_player) & (state.board[coor_y, coor_x] == 0)):
-                    prev_action = (coor_y, coor_x)
-                if ((state.board[coor_y, coor_x] != 0) & (prev_state.board[coor_y, coor_x] == 0)):
-                    now_action = (coor_y, coor_x)
-        return (prev_action, now_action)
-    
     def is_on_board(self, state: State, coor):
         return coor[0] % state.height == coor[0] \
             and coor[1] % state.width == coor[1]
@@ -83,23 +55,37 @@ class Problem:
         possible_neighbors = ((coor_y + 1, coor_x), (coor_y - 1, coor_x), (coor_y, coor_x + 1), (coor_y, coor_x - 1))
         if ((coor_x + coor_y) % 2 == 0):
             possible_neighbors += ((coor_y + 1, coor_x + 1), (coor_y - 1, coor_x + 1), (coor_y + 1, coor_x - 1), (coor_y - 1, coor_x - 1))
-        return [coor for coor in possible_neighbors if self.is_on_board(state, coor)]        
-
+        return [coor for coor in possible_neighbors if self.is_on_board(state, coor)]
+   
     def can_move(self, state: State, pos: tuple):
         neighbor = self.get_valid_neighbors(state, pos)
         can_move_list = []
         for value in neighbor:
             if state.board[value] == 0:
                 can_move_list.append(value)
-        return can_move_list 
+        return can_move_list   
 
-    def get_possible_moves(self, prev_state: State, state:State):
+    def capture(self, state: State, pos_action: tuple):
+        player = state.board[pos_action]
+        coor_y, coor_x = pos_action
+        capture_list = []
+        flat_coor = coor_y * state.width + coor_x
+        neighbor = self.get_valid_neighbors(state, pos_action)
+        for pos in neighbor:
+            flat_pos = pos[0] * state.width + pos[1]
+            if state.board[pos] == -player:
+                opposite_pos = divmod(flat_coor*2 - flat_pos, state.width)
+                if opposite_pos in neighbor:
+                    if state.board[opposite_pos] == -player:
+                        capture_list.append(pos)
+        return capture_list
+
+    def get_possible_moves(self, state:State):
         '''
         Get all possible moves for given state.
 
         Input
         ----------
-            prev_state: state before returning now state
             state: input State.
             
         Output
@@ -110,51 +96,44 @@ class Problem:
                             (1,2): [(2,2),(1,1),...]
                             ...
                            }
+            
         '''
-        action = self.get_open_move(prev_state, state)
         dictionary = dict({})
-        capture_dict = dict({})
+        dictionary_capture = dict({})
         is_cap = False
         for coor_y in range(state.height):
-            for coor_x in range(state.width):
-                if state.board[coor_y, coor_x] == state.player:
+            for coor_x in range(state.width):      
+                if state.board[coor_y, coor_x] == state.player:  
                     next_moves = self.can_move(state, (coor_y, coor_x))
                     possible_capture = []
                     for next_move in next_moves:
-                        neighbor = self.get_valid_neighbors(state, next_move)
+                        is_opposite = False
                         flat_coor = next_move[0] * state.width + next_move[1]
+                        neighbor = self.get_valid_neighbors(state, next_move)
                         for pos in neighbor:
                             if pos == (coor_y, coor_x):
                                 continue
+                            flat_pos = pos[0] * state.width + pos[1]
                             if state.board[pos] == -state.player:
-                                flat_pos = pos[0] * state.width + pos[1]
                                 opposite_pos = divmod(flat_coor*2 - flat_pos, state.width)
                                 if opposite_pos in neighbor:
                                     if state.board[opposite_pos] == -state.player:
-                                        is_cap = True
-                                        break
-                        if(is_cap):
+                                        is_opposite = True
+                                        is_cap = True 
+                        if is_opposite:
                             possible_capture.append(next_move)
                     if(is_cap):
-                        if (possible_capture):
-                            capture_dict[(coor_y, coor_x)] = possible_capture
-                    if (next_moves):
-                        dictionary[(coor_y, coor_x)] = next_moves
+                        if (possible_capture):                                       
+                            dictionary_capture[coor_y, coor_x] = list(possible_capture)
+                    else:
+                        if(next_moves):
+                            dictionary[coor_y, coor_x] = next_moves
         if (not is_cap):
             return dictionary
         else:
-            output_dict = dict({})
-            use_open_move = False
+            return dictionary_capture
 
-            for key, values in capture_dict.items():
-                if action[0] in values:
-                    use_open_move = True
-                    output_dict[key] = [action[0]]
-            if (use_open_move):
-                return output_dict
-            else:
-                return capture_dict                
-                 
+               
     def move(self, state: State, action, inplace=False):
         '''
         Do action.
@@ -204,7 +183,7 @@ class Problem:
         if not inplace:
             return state
 
-    def move_if_possible(self, prev_state:State, state:State, action, inplace=False):
+    def move_if_possible(self, state:State, action, inplace=False):
         '''
         Do action if possible.
 
@@ -221,7 +200,7 @@ class Problem:
                    None if inplace is True.
             
         '''
-        if action[1] in self.get_possible_moves(prev_state, state).get(action[0], []):
+        if action[1] in self.get_possible_moves(state).get(action[0], []):
             return True,self.move(state, action, inplace)
         return False, None
 
