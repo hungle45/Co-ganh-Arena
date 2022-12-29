@@ -22,9 +22,8 @@ def move(prev_board, board, player, remain_time_x, remain_time_y):
             eg. ((1,1),(1,2)).  
 
     '''
-
     state = State(board, player)
-    prev_state = State(prev_board, -player)
+    prev_state = State(prev_board, -player) if prev_board is not None else None
     problem = Problem()
     dict_possible_moves = problem.get_possible_moves(prev_state, state)
     all_possible_moves = []

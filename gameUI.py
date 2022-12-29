@@ -49,9 +49,10 @@ class BaseGameUI:
         return x,y
 
     def _make_move(self,action):
+        prev_state = None if len(self.move_log) == 0 else self.move_log[-1]
         self.move_log.append(copy.deepcopy(self.state)) # save move for undo feature
-
-        can_do, _ = self.problem.move_if_possible(self.state,action,inplace=True)
+        
+        can_do, _ = self.problem.move_if_possible(prev_state,self.state,action,inplace=True)
         if can_do:
             if self.state.player == -1:
                 self.remain_move_p1 -= 1
@@ -111,7 +112,8 @@ class BaseGameUI:
         self._draw_diagonal()
 
     def _draw_moveable_piece(self):
-        for piece,targets in self.problem.get_possible_moves(self.state).items():
+        prev_state = None if len(self.move_log) == 0 else self.move_log[-1]
+        for piece,targets in self.problem.get_possible_moves(prev_state, self.state).items():
             if len(targets) == 0: continue
             self._draw_piece(GRAY,piece[0],
                 piece[1],self.PIECE_RADIUS+4)
@@ -258,7 +260,8 @@ class HumanGameUIMixin():
 
     def _draw_possible_moves(self):
         if self.selected_piece is not None:
-            p_moves = self.problem.get_possible_moves(self.state).get(self.selected_piece,[])
+            prev_state = None if len(self.move_log) == 0 else self.move_log[-1]
+            p_moves = self.problem.get_possible_moves(prev_state,self.state).get(self.selected_piece,[])
             for p_move in p_moves:
                 self._draw_piece((180, 180, 180),p_move[0],p_move[1],self.PIECE_RADIUS*0.6)
 
@@ -267,11 +270,13 @@ class HumanGameUIMixin():
 class ComputerGameUIMixin:
     def _handle_move_by_AI(self,algorithm):
         # simulate alpha
+        
         if not self.thinking_AI:
             self.thinking_AI = True
             self.return_queue = Queue()
+            prev_board = None if len(self.move_log) == 0 else self.move_log[-1].board
             self.move_AI_process = Process(target=_move_AI_bounder,
-                args=(self.state.board,self.state.player,self.remain_time_p1,\
+                args=(prev_board,self.state.board,self.state.player,self.remain_time_p1,\
                         self.remain_time_p2,algorithm,self.return_queue))
             self.move_AI_process.daemon = True
             self.move_AI_process.start()

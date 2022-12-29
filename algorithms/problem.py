@@ -4,10 +4,10 @@ import time
 
 import numpy as np
 
-def _move_AI_bounder(board, player, remain_time_x, remain_time_y,algorithm,return_queue):
+def _move_AI_bounder(prev_board, board, player, remain_time_x, remain_time_y,algorithm,return_queue):
     # move = algorithm(board, player, remain_time_x, remain_time_y)
     start_time = time.time()
-    move = algorithm(board, player, remain_time_x, remain_time_y)
+    move = algorithm(prev_board, board, player, remain_time_x, remain_time_y)
     end_time = time.time()
     return_queue.put((move,(end_time-start_time)*1000))
 
@@ -92,6 +92,21 @@ class Problem:
             if state.board[value] == 0:
                 can_move_list.append(value)
         return can_move_list 
+
+    def capture(self, state: State, pos_action: tuple):
+        player = state.board[pos_action[0]][pos_action[1]]
+        coor_y, coor_x = pos_action
+        capture_list = []
+        flat_coor = coor_y * state.width + coor_x
+        neighbor = self.get_valid_neighbors(state, pos_action)
+        for pos in neighbor:
+            flat_pos = pos[0] * state.width + pos[1]
+            if state.board[pos[0]][pos[1]] == -player:
+                opposite_pos = divmod(flat_coor*2 - flat_pos, state.width)
+                if opposite_pos in neighbor:
+                    if state.board[opposite_pos[0]][opposite_pos[1]] == -player:
+                        capture_list.append(pos)
+        return capture_list
 
     def get_possible_moves(self, prev_state: State, state:State):
         '''
