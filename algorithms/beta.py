@@ -7,9 +7,9 @@ import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from algorithms.problem import State, Problem
 
-MAX_DEPTH = 5
+MAX_DEPTH = 4
 
-def move(board, player, remain_time_x, remain_time_y):
+def move(prev_board, board, player, remain_time_x, remain_time_y):
     '''
         Get random move
 
@@ -26,6 +26,7 @@ def move(board, player, remain_time_x, remain_time_y):
     '''
 
     state = State(board, player)
+    prev_state = State(prev_board, -player) if prev_board is not None else None
     problem = Problem()
     visited_states = {}
 
@@ -49,7 +50,7 @@ def move(board, player, remain_time_x, remain_time_y):
     def _calculate_score(state: State):
         return np.sum(state.board)
         
-    def _minimax(state, depth, alpha, beta):
+    def _minimax(prev_state, state, depth, alpha, beta):
         if(depth == 0):
             return (), _calculate_score(state)
 
@@ -59,7 +60,7 @@ def move(board, player, remain_time_x, remain_time_y):
             return visited_states[hased_state][depth]
 
         # Get all possible actions
-        dict_possible_moves = problem.get_possible_moves(state)
+        dict_possible_moves = problem.get_possible_moves(prev_state, state)
         best_action = ()
 
         if(state.player == 1):
@@ -73,7 +74,7 @@ def move(board, player, remain_time_x, remain_time_y):
                     if(_is_visited(hased_next_state, depth-1)):
                         action, value = visited_states[hased_next_state][depth-1]
                     else:
-                        action, value = _minimax(next_state, depth-1, alpha, beta)
+                        action, value = _minimax(state, next_state, depth-1, alpha, beta)
                         _add_visited_state(hased_next_state, depth-1, value, action)
 
                     if value > max_value:
@@ -96,7 +97,7 @@ def move(board, player, remain_time_x, remain_time_y):
                     if(_is_visited(hased_next_state, depth-1)):
                         action, value = visited_states[hased_next_state][depth-1]
                     else:
-                        action, value = _minimax(next_state, depth-1, alpha, beta)
+                        action, value = _minimax(state, next_state, depth-1, alpha, beta)
                         _add_visited_state(hased_next_state, depth-1, value, action)
 
                     if value < min_value:
@@ -108,7 +109,7 @@ def move(board, player, remain_time_x, remain_time_y):
                         break
             return best_action, min_value
 
-    action, value = _minimax(state, MAX_DEPTH, -1000, 1000)
+    action, value = _minimax(prev_state, state, MAX_DEPTH, -1000, 1000)
     return action
 
 

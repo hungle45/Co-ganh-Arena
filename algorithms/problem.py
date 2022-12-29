@@ -58,7 +58,7 @@ class Problem:
             open_move: (prev_action, now_action) Prev_board ---> Present board
             return None if no exist (Never occur unless state is INIT STATE) and otherwise
         '''
-        if (not prev_state):
+        if (prev_state is None):
             return None
         prev_player = prev_state.player
         now_player = state.player
@@ -106,7 +106,7 @@ class Problem:
                 if opposite_pos in neighbor:
                     if state.board[opposite_pos[0]][opposite_pos[1]] == -player:
                         capture_list.append(pos)
-        return capture_list
+        return capture_list                
 
     def get_possible_moves(self, prev_state: State, state:State):
         '''
@@ -128,48 +128,39 @@ class Problem:
         '''
         action = self.get_open_move(prev_state, state)
         dictionary = dict({})
-        capture_dict = dict({})
-        is_cap = False
         for coor_y in range(state.height):
             for coor_x in range(state.width):
                 if state.board[coor_y, coor_x] == state.player:
                     next_moves = self.can_move(state, (coor_y, coor_x))
-                    possible_capture = []
-                    for next_move in next_moves:
-                        neighbor = self.get_valid_neighbors(state, next_move)
-                        flat_coor = next_move[0] * state.width + next_move[1]
-                        for pos in neighbor:
-                            if pos == (coor_y, coor_x):
-                                continue
-                            if state.board[pos] == -state.player:
-                                flat_pos = pos[0] * state.width + pos[1]
-                                opposite_pos = divmod(flat_coor*2 - flat_pos, state.width)
-                                if opposite_pos in neighbor:
-                                    if state.board[opposite_pos] == -state.player:
-                                        is_cap = True
-                                        break
-                        if(is_cap):
-                            possible_capture.append(next_move)
-                    if(is_cap):
-                        if (possible_capture):
-                            capture_dict[(coor_y, coor_x)] = possible_capture
-                    if (next_moves):
+                    if (len(next_moves)):
                         dictionary[(coor_y, coor_x)] = next_moves
-        if (not is_cap):
-            return dictionary
-        else:
-            output_dict = dict({})
-            use_open_move = False
-
-            for key, values in capture_dict.items():
-                if action[0] in values:
-                    use_open_move = True
-                    output_dict[key] = [action[0]]
-            if (use_open_move):
-                return output_dict
+        trap_move = dict({})
+        if action is not None:
+            # print(f"Action {action[0]} --> {action[1]}")
+            neighbor = self.get_valid_neighbors(state, action[0])
+            for value in neighbor:
+                if state.board[value] == state.player:
+                    is_cap = False
+                    flat_player = action[0][0] * state.width + action[0][1]
+                    for pos in neighbor:
+                        if pos == value:
+                            continue
+                        if state.board[pos] == -state.player:
+                            flat_pos = pos[0] * state.width + pos[1]
+                            opposite_pos = divmod(flat_player * 2 - flat_pos, state.width)
+                            if opposite_pos in neighbor:
+                                if state.board[opposite_pos] == -state.player:
+                                    is_cap = True
+                                    break
+                    if is_cap:
+                        trap_move[value] = [action[0]]
+            if (len(trap_move) == 0):
+                return dictionary
             else:
-                return capture_dict                
-                 
+                return trap_move
+        else:
+            return dictionary
+
     def move(self, state: State, action, inplace=False):
         '''
         Do action.
@@ -240,10 +231,42 @@ class Problem:
             return True,self.move(state, action, inplace)
         return False, None
 
-
+def print_board(board: list):
+    height = len(board)
+    width = len(board[0])
+    for coor_y in range(height-1, -1, -1):
+        row = ""
+        for coor_x in range(width):
+            if (board[coor_y][coor_x] == 1):
+                row += "X "
+            elif (board[coor_y][coor_x] == -1):
+                row += "O "
+            else:
+                row += "- "
+        print(row)
+        
 if __name__ == '__main__':
     # Test Space
+    testcase = {
+        "prev_board": [[-1, 0, -1, 1, 1],
+                      [-1, -1, 0, 0, 1],
+                      [-1, 0, 1, 0, 1],
+                      [1, 1, 0, 0, 1],
+                      [1, 1, 0, 0, 1]],
+        "board": [[-1, 0,  0,  1,  -1],
+                  [-1, -1,  0,  -1,  1],
+                  [-1, 0,  -1,  0, 1],
+                  [1, 1,  0,  0, 1],
+                  [1, 1, 0, 0, 1]]      
+    }
+
+    player = 1
     game = Problem()
-    dictionary = game.get_possible_moves(game.init_state)
-    for key, values in dictionary.items():
-        print(f'{key}: {values}')
+    print_board(testcase["board"])
+    print()
+    state = State(testcase["board"], player)
+    if(testcase["prev_board"]):
+        prev_state = State(testcase["prev_board"], -player)
+        print("Nuoc di mo:", game.get_possible_moves(prev_state, state))
+    else:
+        print("Nuoc di mo:", game.get_possible_moves(None, state))
