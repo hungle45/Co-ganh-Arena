@@ -13,7 +13,7 @@ from algorithms.problem import State, Problem
 '''
 
 
-MAX_DEPTH = 4
+MAX_DEPTH = 5
 
 def move(prev_board, board, player, remain_time_x, remain_time_y):
     '''
@@ -60,6 +60,9 @@ def move(prev_board, board, player, remain_time_x, remain_time_y):
         return np.sum(state.board)
         
     def _minimax(prev_state, state, depth, alpha, beta):
+        if state.check_winning_state() != 0:
+            return (), 1000*state.check_winning_state()
+
         if(depth == 0):
             return (), _calculate_score(state)
 
@@ -115,7 +118,12 @@ def move(prev_board, board, player, remain_time_x, remain_time_y):
                         beta = best_value
 
                     if(beta <= alpha): break
-                
+
+        if best_action is None:
+            for start in dict_possible_moves.keys():
+                best_action = (start,dict_possible_moves[start][0])
+                break
+
         return best_action, best_value
 
     action, value = _minimax(prev_state, state, MAX_DEPTH, -1000, 1000)
@@ -124,11 +132,17 @@ def move(prev_board, board, player, remain_time_x, remain_time_y):
 
 if __name__ == '__main__':
     start = time.time()
-    board = [[1,  1,  1,  1,  1],
-             [1,  0,  0,  0,  1],
-             [1,  0,  0,  0, 1],
-             [-1,  0,  0,  0, -1],
-             [1, 1, 1, -1, 1]]
-    player = 1
-    a = move(board, player, 1, 1)
+    prev_board=[[ 0,  0,  0,  0,  0],
+                [ 0,  0,  0,  0,  0],
+                [ 0,  0,  0,  0,  1],
+                [ 1,  0,  0,  1,  1],
+                [ 1,  1,  1,  0, -1]]
+    board=[[ 0,  0,  0,  0,  0],
+            [ 0,  0,  0,  0,  0],
+            [ 0,  0,  0,  0,  1],
+            [ 1,  0,  0,  1,  1],
+            [ 1,  1,  1,  0, -1]]
+    player = -1
+    a = move(prev_board, board, player, 1, 1)
     print(time.time()-start)
+    print(a)

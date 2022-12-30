@@ -41,11 +41,16 @@ def move(prev_board, board, player, remain_time_x, remain_time_y):
 
 
 if __name__ == '__main__':
-    board = [[1,  1,  1,  1,  1],
-             [1,  0,  0,  0,  1],
-             [1,  0,  0,  0, -1],
-             [-1,  0,  0,  0, -1],
-             [-1, -1, -1, -1, -1]]
+    prev_board = [[-1, 0, -1, 1, 1],
+                    [-1, -1, 0, 0, 1],
+                    [-1, 0, 1, 0, 1],
+                    [1, 1, 0, 0, 1],
+                    [1, 1, 0, 0, 1]]
+    board = [[-1, 0,  0,  1,  -1],
+                [-1, -1,  0,  -1,  1],
+                [-1, 0,  -1,  0, 1],
+                [1, 1,  0,  0, 1],
+                [1, 1, 0, 0, 1]]      
     player = 1
-    a = move(board, player, 1, 1)
+    a = move(prev_board, board, player, 5000, 5000)
     print(a)

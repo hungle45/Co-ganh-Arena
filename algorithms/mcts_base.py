@@ -11,11 +11,13 @@ import numpy as np
 
 from algorithms.problem import State, Problem
 
-MAX_DEPTH = 10
+MAX_DEPTH = 7
+TIME_THINKING = 2.8
 
 class MCTSNode:
-    def __init__(self, state: State, problem, parent=None, parent_action=None):
+    def __init__(self, prev_state, state: State, problem, parent=None, parent_action=None):
         self.state = state
+        self.prev_state = prev_state
         self.parent = parent
         self.parent_action = parent_action
 
@@ -27,7 +29,7 @@ class MCTSNode:
         self._results[-1] = 0
 
         self._untried_actions = []
-        for start, possible_moves in problem.get_possible_moves(state).items():
+        for start, possible_moves in problem.get_possible_moves(prev_state, state).items():
             for end in possible_moves:
                 self._untried_actions.append((start,end))
 
@@ -57,12 +59,12 @@ class MCTSNode:
 
 
 
-def mcts(state, problem, remain_time):
+def mcts(prev_state, state, problem, remain_time):
     def _expand(current_node: MCTSNode):
         action = current_node._untried_actions.pop()
         next_state = problem.move(current_node.state, action)
         child_node = MCTSNode(
-            next_state, problem, parent=current_node, parent_action=action)
+            current_node.state, next_state, problem, parent=current_node, parent_action=action)
 
         current_node.children.append(child_node)
         return child_node 
@@ -76,23 +78,29 @@ def mcts(state, problem, remain_time):
         return current_node
 
     def _rollout(node, max_depth = MAX_DEPTH):
+        prev_rollout_state = node.prev_state
         current_rollout_state = node.state
         while current_rollout_state.check_winning_state() == 0: # game continue  
             # choose random move   
-            dict_possible_moves = problem.get_possible_moves(state)
+            dict_possible_moves = problem.get_possible_moves(prev_rollout_state,current_rollout_state)
             random_start = random.choice(list(dict_possible_moves.keys()))
             random_end = random.choice(dict_possible_moves[random_start])
             random_move = (random_start,random_end)
             # next state
+            prev_rollout_state = current_rollout_state
             current_rollout_state = problem.move(current_rollout_state, random_move)
 
             max_depth -= 1
             if max_depth == 0: break
 
-        return current_rollout_state.check_winning_state()
+        # return current_rollout_state.check_winning_state()
+        count_p1 = np.sum(current_rollout_state.board ==  1)
+        count_p2 = np.sum(current_rollout_state.board == -1)
+        diff = count_p1 - count_p2
+        return (diff) / abs(diff) if diff != 0 else 0
 
 
-    root = MCTSNode(state, problem)
+    root = MCTSNode(prev_state, state, problem)
     while remain_time > 0:
         st_time = time.time() # time start
 
@@ -106,7 +114,7 @@ def mcts(state, problem, remain_time):
     return root.best_child().parent_action
 
 
-def move(board, player, remain_time_x, remain_time_y):
+def move(prev_board, board, player, remain_time_x, remain_time_y):
     '''
         Get random move
 
@@ -123,26 +131,36 @@ def move(board, player, remain_time_x, remain_time_y):
     '''
 
     state = State(board, player)
+    prev_state = State(prev_board, -player) if prev_board is not None else None
     problem = Problem()
 
     if player == 1:
         remain_time = remain_time_x/1000
     else:
         state.board *= -1
-        player = 1
-        remain_time = remain_time_y/1000
-    remain_time = min(remain_time,2.8)
+        state.player = 1
+        if prev_state is not None:
+            prev_state.board *= -1
+            prev_state.player = -1
 
-    action = mcts(state, problem, remain_time)
+        remain_time = remain_time_y/1000
+    remain_time = min(remain_time,TIME_THINKING)
+
+    action = mcts(prev_state, state, problem, remain_time)
 
     return action
 
 if __name__ == '__main__':
-    board = [[1,  1,  1,  1,  1],
-             [1,  0,  0,  0,  1],
-             [1,  0,  0,  0, -1],
-             [-1,  0,  0,  0, -1],
-             [-1, -1, -1, -1, -1]]
-    player = 1
-    a = move(board, player, 5000, 5000)
+    prev_board = [[-1, 0, -1, 1, 1],
+                    [-1, -1, 0, 0, 1],
+                    [-1, 0, 1, 0, 1],
+                    [1, 1, 0, 0, 1],
+                    [1, 1, 0, 0, 1]]
+    board = [[-1, 0,  0,  1,  -1],
+                [-1, -1,  0,  -1,  1],
+                [-1, 0,  -1,  0, 1],
+                [1, 1,  0,  0, 1],
+                [1, 1, 0, 0, 1]]      
+    player = -1
+    a = move(prev_board, board, player, 5000, 5000)
     print(a)
