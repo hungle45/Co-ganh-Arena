@@ -68,7 +68,7 @@ class Problem:
             raise Exception("Invalid state")
         for coor_y in range(state.height):
             for coor_x in range(state.width):
-                if ((prev_state.board[coor_y, coor_x] == prev_player) & (state.board[coor_y, coor_x] == 0)):
+                if ((prev_state.board[coor_y, coor_x] != 0) & (state.board[coor_y, coor_x] == 0)):
                     prev_action = (coor_y, coor_x)
                 if ((state.board[coor_y, coor_x] != 0) & (prev_state.board[coor_y, coor_x] == 0)):
                     now_action = (coor_y, coor_x)
@@ -260,6 +260,19 @@ if __name__ == '__main__':
                   [1, 1, 0, 0, 1]]      
     }
 
+    # testcase = {
+    #     "prev_board": [[ 1,  0,  1, -1, -1],
+    #                    [ 1,  1,  0,  0, -1],
+    #                    [ 1,  0, -1,  0, -1],
+    #                    [-1, -1,  0,  0, -1],
+    #                    [-1, -1,  0,  0, -1]],
+    #     "board": [[ 1,  0,  0, -1,  1],
+    #               [ 1,  1,  0,  1, -1],
+    #               [ 1,  0,  1,  0, -1],
+    #               [-1, -1,  0,  0, -1],
+    #               [-1, -1,  0,  0,  1]]      
+    # }
+
     player = 1
     game = Problem()
     print_board(testcase["board"])
@@ -267,6 +280,7 @@ if __name__ == '__main__':
     state = State(testcase["board"], player)
     if(testcase["prev_board"]):
         prev_state = State(testcase["prev_board"], -player)
-        print("Nuoc di mo:", game.get_possible_moves(prev_state, state))
+        # print("Nuoc di mo:", game.get_possible_moves(prev_state, state))
+        print(game.get_open_move(prev_state, state))
     else:
         print("Nuoc di mo:", game.get_possible_moves(None, state))
