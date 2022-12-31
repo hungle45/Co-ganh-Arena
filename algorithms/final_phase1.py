@@ -61,7 +61,7 @@ class Problem:
             raise Exception("Invalid state")
         for coor_y in range(state.height):
             for coor_x in range(state.width):
-                if ((prev_state.board[coor_y, coor_x] == prev_player) & (state.board[coor_y, coor_x] == 0)):
+                if ((prev_state.board[coor_y, coor_x] != 0) & (state.board[coor_y, coor_x] == 0)):
                     prev_action = (coor_y, coor_x)
                 if ((state.board[coor_y, coor_x] != 0) & (prev_state.board[coor_y, coor_x] == 0)):
                     now_action = (coor_y, coor_x)
@@ -219,10 +219,7 @@ def move(prev_board, board, player, remain_time_x, remain_time_y):
             eg. ((1,1),(1,2)).  
     '''
     state = State(board, player)
-    if (prev_board):
-        prev_state = State(prev_board, -player)
-    else:
-        prev_state = None
+    prev_state = State(prev_board, -player) if prev_board is not None else None
     problem = Problem()
     visited_states = {}
 
@@ -250,6 +247,9 @@ def move(prev_board, board, player, remain_time_x, remain_time_y):
         return np.sum(state.board)
         
     def _minimax(prev_state, state, depth, alpha, beta):
+        if state.check_winning_state() != 0:
+            return (), 1000*state.check_winning_state()
+
         if(depth == 0):
             return (), _calculate_score(state)
 
@@ -305,7 +305,12 @@ def move(prev_board, board, player, remain_time_x, remain_time_y):
                         beta = best_value
 
                     if(beta <= alpha): break
-                
+
+        if best_action is None:
+            for start in dict_possible_moves.keys():
+                best_action = (start,dict_possible_moves[start][0])
+                break
+
         return best_action, best_value
 
     action, value = _minimax(prev_state, state, MAX_DEPTH, -1000, 1000)
