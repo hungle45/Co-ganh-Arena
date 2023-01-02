@@ -84,6 +84,12 @@ def move(prev_board, board, player, remain_time_x, remain_time_y):
                     alpha = max(alpha, max_value)
                     if(beta <= alpha):
                         break
+
+            if best_action is None:
+                for start in dict_possible_moves.keys():
+                    best_action = (start,dict_possible_moves[start][0])
+                    break
+
             return best_action, max_value
             
         else:
@@ -107,6 +113,12 @@ def move(prev_board, board, player, remain_time_x, remain_time_y):
                     beta = min(beta, min_value)
                     if(beta <= alpha):
                         break
+
+            if best_action is None:
+                for start in dict_possible_moves.keys():
+                    best_action = (start,dict_possible_moves[start][0])
+                    break
+
             return best_action, min_value
 
     action, value = _minimax(prev_state, state, MAX_DEPTH, -1000, 1000)
