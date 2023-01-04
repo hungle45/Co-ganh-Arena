@@ -23,6 +23,24 @@ class State:
         return np.array_equal(self.board,other.board) \
             and self.player == other.player
 
+    def __str__(self):
+        str_board = '\n       '.join(str(self.board).split('\n'))
+        str_board = str_board.replace('-1', ' O')
+        str_board = str_board.replace('1', 'X')
+        str_board = str_board.replace('0', '+')
+
+        str_player = 'X' if self.player == 1 else 'O' 
+
+        return f'Board: {str_board}\nPlayer\'s turn: {str_player}'
+    
+    def __hash__(self):
+        hash_value = ''
+        for coor_y in range(self.height):
+            for coor_x in range(self.width):
+                hash_value +=   chr(98+self.board[coor_y][coor_x])
+        hash_value += chr(98+self.player)
+        return hash(hash_value)
+
     def check_winning_state(self):
         # return: one of below:
         #           (1)  1: player 1 win
