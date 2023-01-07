@@ -6,4 +6,6 @@ from .epsilon import move as epsilon
 
 from .mcts_base import move as mcts_base
 
+from .deep_ai import move as deep_ai
+
 from .problem import State,Problem,_move_AI_bounder

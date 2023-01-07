@@ -7,7 +7,7 @@ import pygame
 import pygame_menu
 
 from constants import *
-from algorithms import alpha,beta,delta,epsilon,mcts_base
+from algorithms import alpha,beta,delta,epsilon,mcts_base,deep_ai
 from gameUI import HVHGameUI,HVCGameUI,CVCGameUI
 
 # Global Constant
@@ -18,6 +18,7 @@ ALGORITHM_CHOICES = [
     ('Delta',delta),
     ('Epsilon',epsilon),
     ('MCTS_BASE',mcts_base),
+    ('DEEP_AI',deep_ai),
 ]
 
 # Global Variable
