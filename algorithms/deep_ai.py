@@ -4,24 +4,18 @@ import os
 import random
 import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from algorithms.problem import State, Problem
-from keras.models import load_model
-import tensorflow as tf
+
+from tensorflow.keras.models import load_model
 
 '''
     Improve delta with ordering move
 '''
 
-class MyActivationLayer(tf.keras.layers.Layer):
-    def __init__(self):
-        super(MyActivationLayer, self).__init__()
-
-    def call(self, inputs):
-        return tf.minimum(1.0, tf.maximum(0.0,inputs))
-
 MAX_DEPTH = 3
 
-def move(prev_board, board, player, remain_time_x, remain_time_y):
+def move(prev_board, board, player, remain_time_x, remain_time_y, model_cnn=None):
     '''
         Get random move
 
@@ -41,7 +35,8 @@ def move(prev_board, board, player, remain_time_x, remain_time_y):
     prev_state = State(prev_board, -player) if prev_board is not None else None
     problem = Problem()
     visited_states = {}
-    model_cnn = load_model('./ml_algorithms/model/model.h5', custom_objects={'MyActivationLayer': MyActivationLayer})
+    if model_cnn is None:
+        model_cnn = load_model('./ml_algorithms/model/model.h5')
 
     def _hash_state(state: State):
         hash_value = ''
@@ -70,7 +65,7 @@ def move(prev_board, board, player, remain_time_x, remain_time_y):
         # model here
         board3d = np.zeros((4, 5, 5))
 
-        if state.player == 1:
+        if cur_state.player == 1:
             board3d[0] = (cur_state.board == -1).astype(np.int8)
             board3d[1] = (cur_state.board == 1).astype(np.int8)
             board3d[2] = (prev_state.board == -1).astype(np.int8)

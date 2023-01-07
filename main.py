@@ -1,7 +1,9 @@
 import sys
 
 from os import environ
+
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+environ['TF_CPP_MIN_LOG_LEVEL'] = '1' 
 
 import pygame
 import pygame_menu
@@ -13,9 +15,9 @@ from gameUI import HVHGameUI,HVCGameUI,CVCGameUI
 # Global Constant
 ALGORITHM_CHOICES = [
     ('Alpha',alpha),
-    ('Beta',beta),
+    # ('Beta',beta),
 
-    ('Delta',delta),
+    # ('Delta',delta),
     ('Epsilon',epsilon),
     ('MCTS_BASE',mcts_base),
     ('DEEP_AI',deep_ai),

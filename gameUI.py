@@ -10,7 +10,7 @@ system("")
 import pygame
 import numpy as np
 
-from algorithms import State,Problem,alpha,beta,_move_AI_bounder
+from algorithms import State,Problem,_move_AI_bounder
 from constants import *
 
 
@@ -509,34 +509,4 @@ class CVCGameUI(ComputerGameUIMixin,BaseGameUI):
 
 if __name__ == '__main__':
     # Test Space
-    pygame.init()
-
-    clock = pygame.time.Clock()
-
-    surface = pygame.display.set_mode((W_WIDTH_SIZE,W_HEIGHT_SIZE))
-
-    # GAME = HVHGameUI(surface)
-    # GAME = HVCGameUI(surface, alpha)
-    GAME = CVCGameUI(surface, alpha, alpha)
-
-    while True:
-        # tick clock
-        deltatime = clock.tick(FPS)
-
-        # all game events
-        events = pygame.event.get()
-
-        # GAME.process(events)
-        GAME.process(events, deltatime)
-
-        for event in events:
-            if event.type == pygame.QUIT or GAME.should_quit():
-                pygame.quit()
-                sys.exit()
-
-        try:
-            menu.mainloop(surface)
-        except:
-            pass
-        
-        pygame.display.update()
+    pass
